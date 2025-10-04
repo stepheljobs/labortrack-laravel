@@ -5,7 +5,7 @@
         <h2 class="text-lg font-medium">Projects</h2>
     </div>
 
-    <form method="post" action="{{ route('admin.projects.store') }}" class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
+    <form method="post" action="{{ route('projects.store') }}" class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
         @csrf
         <input class="border rounded-md px-3 py-2" type="text" name="name" placeholder="Project name" required>
         <input class="border rounded-md px-3 py-2" type="text" name="location_address" placeholder="Location (optional)">
@@ -30,7 +30,7 @@
                         <td class="px-3 py-2">{{ $p->name }}</td>
                         <td class="px-3 py-2">{{ $p->location_address }}</td>
                         <td class="px-3 py-2">{{ $p->created_at->toDateString() }}</td>
-                        <td class="px-3 py-2"><a class="text-blue-600 hover:underline" href="{{ route('admin.projects.show', $p) }}">View</a></td>
+                        <td class="px-3 py-2"><a class="text-blue-600 hover:underline" href="{{ route('projects.show', $p) }}">View</a></td>
                     </tr>
                 @endforeach
             </tbody>

@@ -1,4 +1,3 @@
-import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
@@ -11,26 +10,54 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Dashboard() {
+interface DashboardProps {
+    projectsCount: number;
+    todayAttendance: number;
+    recentMessages: Array<{
+        id: number;
+        created_at: string;
+        user?: { id: number; name: string };
+        project?: { id: number; name: string };
+        message: string;
+        photo_url?: string | null;
+    }>;
+}
+
+export default function Dashboard({ projectsCount, todayAttendance, recentMessages }: DashboardProps) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+            <div className="flex flex-col gap-6 p-4">
                 <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+                    <div className="rounded-xl border p-4">
+                        <div className="text-sm text-muted-foreground">Projects</div>
+                        <div className="mt-2 text-3xl font-semibold">{projectsCount}</div>
                     </div>
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+                    <div className="rounded-xl border p-4">
+                        <div className="text-sm text-muted-foreground">Today's Attendance</div>
+                        <div className="mt-2 text-3xl font-semibold">{todayAttendance}</div>
                     </div>
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+                    <div className="rounded-xl border p-4">
+                        <div className="text-sm text-muted-foreground">Overview</div>
+                        <div className="mt-2">Keep an eye on activity.</div>
                     </div>
                 </div>
-                <div className="relative min-h-[100vh] flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
-                    <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+                <div className="rounded-xl border">
+                    <div className="border-b px-4 py-3 text-sm font-medium">Recent Messages</div>
+                    <div className="divide-y">
+                        {recentMessages.length === 0 && (
+                            <div className="px-4 py-3 text-sm text-muted-foreground">No recent messages.</div>
+                        )}
+                        {recentMessages.map((m) => (
+                            <div key={m.id} className="px-4 py-3 text-sm">
+                                <div className="text-muted-foreground">{m.created_at} — {m.user?.name} — {m.project?.name}</div>
+                                <div className="mt-1">{m.message}</div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         </AppLayout>
     );
 }
+

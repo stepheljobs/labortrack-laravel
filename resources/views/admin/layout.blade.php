@@ -36,8 +36,8 @@
                 <h1 class="text-xl font-semibold">{{ config('app.name') }} <span class="text-muted-foreground">Admin</span></h1>
                 <nav class="space-x-4 text-sm">
                     <a class="hover:underline" href="{{ route('admin.dashboard') }}">Dashboard</a>
-                    <a class="hover:underline" href="{{ route('admin.projects.index') }}">Projects</a>
-                    <a class="hover:underline" href="{{ route('admin.reports.index') }}">Reports</a>
+                    <a class="hover:underline" href="{{ route('projects.index') }}">Projects</a>
+                    <a class="hover:underline" href="{{ route('reports.index') }}">Reports</a>
                 </nav>
             </div>
             @if (session('status'))

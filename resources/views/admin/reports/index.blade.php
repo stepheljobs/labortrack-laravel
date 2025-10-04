@@ -2,7 +2,7 @@
 
 @section('content')
     <h2>Attendance Reports</h2>
-    <form method="get" action="{{ route('admin.reports.index') }}" style="display:flex; gap:1rem; align-items:end; margin-bottom:1rem;">
+    <form method="get" action="{{ route('reports.index') }}" style="display:flex; gap:1rem; align-items:end; margin-bottom:1rem;">
         <div>
             <label>Project</label>
             <select name="project_id">
@@ -21,7 +21,7 @@
             <input type="date" name="to" value="{{ request('to') }}">
         </div>
         <button type="submit">Filter</button>
-        <a href="{{ route('admin.reports.export', request()->query()) }}">Export CSV</a>
+        <a href="{{ route('reports.export', request()->query()) }}">Export CSV</a>
     </form>
 
     <table>

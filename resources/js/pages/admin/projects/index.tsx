@@ -6,13 +6,13 @@ export default function AdminProjectsIndex({ projects }: { projects: { data: Arr
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        post('/admin/projects', {
+        post('/projects', {
             onSuccess: () => reset('name','location_address','geofence_radius'),
         });
     };
 
     return (
-        <AppLayout breadcrumbs={[{ title: 'Admin', href:'/admin/dashboard' }, { title: 'Projects', href: '/admin/projects' }]}>
+        <AppLayout breadcrumbs={[{ title: 'Admin', href:'/dashboard' }, { title: 'Projects', href: '/projects' }]}>
             <Head title="Projects" />
             <div className="p-4">
                 <form onSubmit={submit} className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
@@ -39,7 +39,7 @@ export default function AdminProjectsIndex({ projects }: { projects: { data: Arr
                                     <td className="px-3 py-2">{p.name}</td>
                                     <td className="px-3 py-2">{p.location_address}</td>
                                     <td className="px-3 py-2">{p.created_at}</td>
-                                    <td className="px-3 py-2"><Link className="text-blue-600 hover:underline" href={`/admin/projects/${p.id}`}>View</Link></td>
+                                    <td className="px-3 py-2"><Link className="text-blue-600 hover:underline" href={`/projects/${p.id}`}>View</Link></td>
                                 </tr>
                             ))}
                         </tbody>

@@ -72,9 +72,9 @@ Validation failures return:
 
 ## Admin Views (Blade)
 - `/admin/dashboard` — Overview (projects count, today attendance, recent messages)
-- `/admin/projects` — Index + create
-- `/admin/projects/{id}` — Detail with labors and messages
-- `/admin/reports` — Filter by project and date range; Export CSV
+- `/projects` — Index + create
+- `/projects/{id}` — Detail with labors and messages
+- `/reports` — Filter by project and date range; Export CSV
 
 Require authenticated admin (`users.role = 'admin'`).
 

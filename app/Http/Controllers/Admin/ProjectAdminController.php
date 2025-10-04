@@ -43,7 +43,7 @@ class ProjectAdminController extends Controller
         ]);
         $data['created_by'] = $request->user()->id;
         $project = Project::create($data);
-        return redirect()->route('admin.projects.show', $project)->with('status', 'Project created');
+        return redirect()->route('projects.show', $project)->with('status', 'Project created');
     }
 
     public function show(Project $project)

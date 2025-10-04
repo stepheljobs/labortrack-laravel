@@ -11,7 +11,7 @@
 
     <div class="mt-6">
         <h3 class="font-medium mb-2">Assign Supervisor</h3>
-        <form class="flex gap-2" method="post" action="{{ route('admin.projects.attachSupervisor', $project) }}">
+        <form class="flex gap-2" method="post" action="{{ route('projects.attachSupervisor', $project) }}">
             @csrf
             <select class="border rounded-md px-3 py-2" name="user_id" required>
                 @foreach ($supervisors as $s)

@@ -42,13 +42,10 @@ export function AppSidebar() {
     const user = (props as any).auth?.user as { role?: string } | undefined;
     const isAdmin = user?.role === 'admin';
 
-    const adminNavItems: NavItem[] = isAdmin
-        ? [
-              { title: 'Admin Dashboard', href: '/admin/dashboard', icon: LayoutGrid },
-              { title: 'Admin Projects', href: '/admin/projects', icon: Folder },
-              { title: 'Admin Reports', href: '/admin/reports', icon: BookOpen },
-          ]
-        : [];
+    const projectNavItems: NavItem[] = [
+        { title: 'Projects', href: '/projects', icon: Folder },
+        { title: 'Reports', href: '/reports', icon: BookOpen },
+    ];
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -64,7 +61,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={[...mainNavItems, ...adminNavItems]} />
+                <NavMain items={[...mainNavItems, ...projectNavItems]} />
             </SidebarContent>
 
             <SidebarFooter>

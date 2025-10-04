@@ -34,14 +34,8 @@ get {
   auth: bearer
 }
 
-get {
-  url: {{base_url}}/admin/projects
-  body: none
-  auth: bearer
-}
-
 post {
-  url: {{base_url}}/admin/projects
+  url: {{base_url}}/projects
   body: json
   auth: bearer
 }
@@ -58,13 +52,13 @@ body:json {
 }
 
 get {
-  url: {{base_url}}/admin/projects/{{project_id}}
+  url: {{base_url}}/projects/{{project_id}}
   body: none
   auth: bearer
 }
 
 post {
-  url: {{base_url}}/admin/projects/{{project_id}}/supervisors
+  url: {{base_url}}/projects/{{project_id}}/supervisors
   body: json
   auth: bearer
 }
@@ -76,13 +70,13 @@ body:json {
 }
 
 get {
-  url: {{base_url}}/admin/reports
+  url: {{base_url}}/reports
   body: none
   auth: bearer
 }
 
 get {
-  url: {{base_url}}/admin/reports/export
+  url: {{base_url}}/reports/export
   body: none
   auth: bearer
 }

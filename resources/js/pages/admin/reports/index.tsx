@@ -5,10 +5,10 @@ type Log = { id:number; timestamp?:string; project?:{id:number;name:string}; lab
 
 export default function AdminReportsIndex({ projects, logs, filters }: { projects: Array<{id:number;name:string}>, logs: { data: Log[]; meta: { current_page:number; last_page:number; total:number } }, filters: { project_id?:number; from?:string; to?:string } }) {
     return (
-        <AppLayout breadcrumbs={[{ title: 'Admin', href:'/admin/dashboard' }, { title: 'Reports', href:'/admin/reports' }]}>
+        <AppLayout breadcrumbs={[{ title: 'Admin', href:'/dashboard' }, { title: 'Reports', href:'/reports' }]}>
             <Head title="Reports" />
             <div className="p-4">
-                <form method="get" action="/admin/reports" className="flex flex-wrap gap-3 items-end mb-4">
+                <form method="get" action="/reports" className="flex flex-wrap gap-3 items-end mb-4">
                     <div>
                         <label className="block text-xs mb-1">Project</label>
                         <select className="border rounded-md px-3 py-2" name="project_id" defaultValue={filters.project_id ?? ''}>
@@ -25,7 +25,7 @@ export default function AdminReportsIndex({ projects, logs, filters }: { project
                         <input className="border rounded-md px-3 py-2" type="date" name="to" defaultValue={filters.to} />
                     </div>
                     <button className="rounded-md bg-primary text-primary-foreground px-4 py-2" type="submit">Filter</button>
-                    <a className="px-3 py-2 text-blue-600" href={`/admin/reports/export?project_id=${filters.project_id ?? ''}&from=${filters.from ?? ''}&to=${filters.to ?? ''}`}>Export CSV</a>
+                    <a className="px-3 py-2 text-blue-600" href={`/reports/export?project_id=${filters.project_id ?? ''}&from=${filters.from ?? ''}&to=${filters.to ?? ''}`}>Export CSV</a>
                 </form>
 
                 <div className="overflow-hidden rounded-lg border">

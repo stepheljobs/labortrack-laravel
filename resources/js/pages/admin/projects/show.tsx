@@ -16,18 +16,18 @@ export default function AdminProjectShow({ project, supervisors }: { project: { 
 
     const submitAssign = (e: React.FormEvent) => {
         e.preventDefault();
-        assign.post(`/admin/projects/${project.id}/supervisors`);
+        assign.post(`/projects/${project.id}/supervisors`);
     };
 
     const submitLabor = (e: React.FormEvent) => {
         e.preventDefault();
-        labor.post(`/admin/projects/${project.id}/labors`, {
+        labor.post(`/projects/${project.id}/labors`, {
             onSuccess: () => labor.reset('name','contact_number','role')
         });
     };
 
     return (
-        <AppLayout breadcrumbs={[{ title: 'Admin', href:'/admin/dashboard' }, { title: 'Projects', href:'/admin/projects' }, { title: project.name, href:`/admin/projects/${project.id}` }]}>
+        <AppLayout breadcrumbs={[{ title: 'Admin', href:'/dashboard' }, { title: 'Projects', href:'/projects' }, { title: project.name, href:`/projects/${project.id}` }]}>
             <Head title={project.name} />
             <div className="p-4 space-y-6">
                 <div className="flex items-center justify-between">

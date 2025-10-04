@@ -25,7 +25,7 @@ class DashboardController extends Controller
                 'photo_url' => $m->photo_path ? asset('storage/'.$m->photo_path) : null,
             ]);
 
-        return Inertia::render('admin/dashboard', [
+        return Inertia::render('dashboard', [
             'projectsCount' => $projectsCount,
             'todayAttendance' => $todayAttendance,
             'recentMessages' => $recentMessages,
