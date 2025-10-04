@@ -1,0 +1,63 @@
+meta {
+  name: Settings
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{base_url}}/settings/profile
+  body: none
+  auth: bearer
+}
+
+patch {
+  url: {{base_url}}/settings/profile
+  body: json
+  auth: bearer
+}
+
+body:json {
+  {
+    "name": "Updated Name",
+    "email": "updated@example.com",
+    "phone": "+1234567890"
+  }
+}
+
+delete {
+  url: {{base_url}}/settings/profile
+  body: none
+  auth: bearer
+}
+
+get {
+  url: {{base_url}}/settings/password
+  body: none
+  auth: bearer
+}
+
+put {
+  url: {{base_url}}/settings/password
+  body: json
+  auth: bearer
+}
+
+body:json {
+  {
+    "current_password": "currentpassword123",
+    "password": "newpassword123",
+    "password_confirmation": "newpassword123"
+  }
+}
+
+get {
+  url: {{base_url}}/settings/appearance
+  body: none
+  auth: bearer
+}
+
+get {
+  url: {{base_url}}/settings/two-factor
+  body: none
+  auth: bearer
+}

@@ -7,13 +7,14 @@ use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Carbon;
+use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReportController extends Controller
 {
     public function index(Request $request)
     {
-        $projects = Project::orderBy('name')->get();
+        $projects = Project::orderBy('name')->get(['id','name']);
         $selectedProject = $request->integer('project_id');
         $from = $request->date('from');
         $to = $request->date('to');
@@ -26,7 +27,33 @@ class ReportController extends Controller
 
         $logs = $query->paginate(25);
 
-        return view('admin.reports.index', compact('projects', 'logs'));
+        return Inertia::render('admin/reports/index', [
+            'projects' => $projects,
+            'logs' => [
+                'data' => $logs->map(fn ($log) => [
+                    'id' => $log->id,
+                    'timestamp' => optional($log->timestamp)->toDateTimeString(),
+                    'project' => $log->project?->only(['id','name']),
+                    'labor' => $log->labor?->only(['id','name']),
+                    'supervisor' => $log->supervisor?->only(['id','name']),
+                    'latitude' => $log->latitude,
+                    'longitude' => $log->longitude,
+                    'location_address' => $log->location_address,
+                    'photo_url' => $log->photo_path ? asset('storage/'.$log->photo_path) : null,
+                ]),
+                'meta' => [
+                    'current_page' => $logs->currentPage(),
+                    'last_page' => $logs->lastPage(),
+                    'per_page' => $logs->perPage(),
+                    'total' => $logs->total(),
+                ],
+            ],
+            'filters' => [
+                'project_id' => $selectedProject,
+                'from' => $from?->toDateString(),
+                'to' => $to?->toDateString(),
+            ],
+        ]);
     }
 
     public function export(Request $request): StreamedResponse
@@ -66,4 +93,3 @@ class ReportController extends Controller
         }, $filename, ['Content-Type' => 'text/csv']);
     }
 }
-

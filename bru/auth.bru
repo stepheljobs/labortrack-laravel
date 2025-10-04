@@ -1,0 +1,90 @@
+meta {
+  name: Authentication
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/register
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "John Doe",
+    "email": "john@example.com",
+    "password": "password123",
+    "password_confirmation": "password123"
+  }
+}
+
+post {
+  url: {{base_url}}/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "john@example.com",
+    "password": "password123"
+  }
+}
+
+post {
+  url: {{base_url}}/logout
+  body: none
+  auth: bearer
+}
+
+post {
+  url: {{base_url}}/forgot-password
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "john@example.com"
+  }
+}
+
+get {
+  url: {{base_url}}/reset-password/{{token}}
+  body: none
+  auth: none
+}
+
+post {
+  url: {{base_url}}/reset-password
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "token": "{{token}}",
+    "email": "john@example.com",
+    "password": "newpassword123",
+    "password_confirmation": "newpassword123"
+  }
+}
+
+get {
+  url: {{base_url}}/verify-email
+  body: none
+  auth: bearer
+}
+
+get {
+  url: {{base_url}}/verify-email/{{id}}/{{hash}}
+  body: none
+  auth: bearer
+}
+
+post {
+  url: {{base_url}}/email/verification-notification
+  body: none
+  auth: bearer
+}

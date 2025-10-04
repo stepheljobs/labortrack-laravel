@@ -32,6 +32,7 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
     Route::post('/projects', [ProjectAdminController::class, 'store'])->name('admin.projects.store');
     Route::get('/projects/{project}', [ProjectAdminController::class, 'show'])->name('admin.projects.show');
     Route::post('/projects/{project}/supervisors', [ProjectAdminController::class, 'attachSupervisor'])->name('admin.projects.attachSupervisor');
+    Route::post('/projects/{project}/labors', [ProjectAdminController::class, 'storeLabor'])->name('admin.projects.labors.store');
 
     Route::get('/reports', [ReportController::class, 'index'])->name('admin.reports.index');
     Route::get('/reports/export', [ReportController::class, 'export'])->name('admin.reports.export');

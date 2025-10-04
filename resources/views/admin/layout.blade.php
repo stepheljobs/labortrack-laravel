@@ -1,36 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ config('app.name') }} Admin</title>
-    @vite(['resources/css/app.css'])
-    <style>
-        body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji'; margin: 0; padding: 0; }
-        header, main { max-width: 1200px; margin: 0 auto; padding: 1rem; }
-        nav a { margin-right: 1rem; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 0.5rem; border-bottom: 1px solid #e5e7eb; text-align: left; }
-        .status { color: green; }
-    </style>
-    @stack('head')
-    @yield('head')
-</head>
-<body>
-    <header>
-        <h1>{{ config('app.name') }} Admin</h1>
-        <nav>
-            <a href="{{ route('admin.dashboard') }}">Dashboard</a>
-            <a href="{{ route('admin.projects.index') }}">Projects</a>
-            <a href="{{ route('admin.reports.index') }}">Reports</a>
-        </nav>
-        @if (session('status'))
-            <p class="status">{{ session('status') }}</p>
-        @endif
-    </header>
-    <main>
-        @yield('content')
-    </main>
-</body>
-</html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" @class(['dark' => ($appearance ?? 'system') == 'dark'])>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
 
+        <script>
+            (function() {
+                const appearance = '{{ $appearance ?? "system" }}';
+                if (appearance === 'system') {
+                    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    if (prefersDark) {
+                        document.documentElement.classList.add('dark');
+                    }
+                }
+            })();
+        </script>
+
+        <style>
+            html { background-color: oklch(1 0 0); }
+            html.dark { background-color: oklch(0.145 0 0); }
+        </style>
+
+        <title>{{ config('app.name', 'Laravel') }} — Admin</title>
+
+        <link rel="preconnect" href="https://fonts.bunny.net">
+        <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
+
+        @vite(['resources/css/app.css'])
+        @stack('head')
+        @yield('head')
+    </head>
+    <body class="font-sans antialiased bg-background text-foreground">
+        <header class="max-w-6xl mx-auto px-4 py-6">
+            <div class="flex items-center justify-between">
+                <h1 class="text-xl font-semibold">{{ config('app.name') }} <span class="text-muted-foreground">Admin</span></h1>
+                <nav class="space-x-4 text-sm">
+                    <a class="hover:underline" href="{{ route('admin.dashboard') }}">Dashboard</a>
+                    <a class="hover:underline" href="{{ route('admin.projects.index') }}">Projects</a>
+                    <a class="hover:underline" href="{{ route('admin.reports.index') }}">Reports</a>
+                </nav>
+            </div>
+            @if (session('status'))
+                <div class="mt-4 rounded-md bg-green-50 dark:bg-green-950/50 text-green-800 dark:text-green-200 px-4 py-2 text-sm">
+                    {{ session('status') }}
+                </div>
+            @endif
+        </header>
+        <main class="max-w-6xl mx-auto px-4 pb-12">
+            @yield('content')
+        </main>
+    </body>
+</html>

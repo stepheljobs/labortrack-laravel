@@ -1,0 +1,93 @@
+meta {
+  name: API Endpoints
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/projects
+  body: none
+  auth: bearer
+}
+
+get {
+  url: {{base_url}}/projects/{{project_id}}
+  body: none
+  auth: bearer
+}
+
+get {
+  url: {{base_url}}/projects/{{project_id}}/labors
+  body: none
+  auth: bearer
+}
+
+post {
+  url: {{base_url}}/projects/{{project_id}}/labors
+  body: json
+  auth: bearer
+}
+
+body:json {
+  {
+    "name": "John Smith",
+    "email": "john.smith@example.com",
+    "phone": "+1234567890",
+    "role": "worker",
+    "hourly_rate": 25.00
+  }
+}
+
+delete {
+  url: {{base_url}}/labors/{{labor_id}}
+  body: none
+  auth: bearer
+}
+
+post {
+  url: {{base_url}}/attendance/log
+  body: json
+  auth: bearer
+}
+
+body:json {
+  {
+    "labor_id": "{{labor_id}}",
+    "project_id": "{{project_id}}",
+    "type": "check_in",
+    "latitude": 40.7128,
+    "longitude": -74.0060,
+    "notes": "Starting work for the day"
+  }
+}
+
+get {
+  url: {{base_url}}/projects/{{project_id}}/attendance
+  body: none
+  auth: bearer
+}
+
+get {
+  url: {{base_url}}/attendance/today
+  body: none
+  auth: bearer
+}
+
+get {
+  url: {{base_url}}/projects/{{project_id}}/messages
+  body: none
+  auth: bearer
+}
+
+post {
+  url: {{base_url}}/projects/{{project_id}}/messages
+  body: json
+  auth: bearer
+}
+
+body:json {
+  {
+    "message": "Project update: All materials have been delivered and work is proceeding on schedule.",
+    "type": "general"
+  }
+}

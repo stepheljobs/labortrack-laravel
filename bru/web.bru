@@ -1,0 +1,88 @@
+meta {
+  name: Web Routes
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{base_url}}/
+  body: none
+  auth: none
+}
+
+get {
+  url: {{base_url}}/dashboard
+  body: none
+  auth: bearer
+}
+
+get {
+  url: {{base_url}}/projects
+  body: none
+  auth: bearer
+}
+
+get {
+  url: {{base_url}}/projects/{{project_id}}
+  body: none
+  auth: bearer
+}
+
+get {
+  url: {{base_url}}/admin/dashboard
+  body: none
+  auth: bearer
+}
+
+get {
+  url: {{base_url}}/admin/projects
+  body: none
+  auth: bearer
+}
+
+post {
+  url: {{base_url}}/admin/projects
+  body: json
+  auth: bearer
+}
+
+body:json {
+  {
+    "name": "New Construction Project",
+    "description": "Building a new office complex",
+    "location": "123 Main St, City, State",
+    "start_date": "2024-01-01",
+    "end_date": "2024-12-31",
+    "budget": 1000000.00
+  }
+}
+
+get {
+  url: {{base_url}}/admin/projects/{{project_id}}
+  body: none
+  auth: bearer
+}
+
+post {
+  url: {{base_url}}/admin/projects/{{project_id}}/supervisors
+  body: json
+  auth: bearer
+}
+
+body:json {
+  {
+    "supervisor_id": "{{supervisor_id}}"
+  }
+}
+
+get {
+  url: {{base_url}}/admin/reports
+  body: none
+  auth: bearer
+}
+
+get {
+  url: {{base_url}}/admin/reports/export
+  body: none
+  auth: bearer
+}

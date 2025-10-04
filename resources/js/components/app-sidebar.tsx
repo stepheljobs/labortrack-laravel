@@ -11,8 +11,8 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import { usePage, Link } from '@inertiajs/react';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
 import AppLogo from './app-logo';
 
@@ -38,6 +38,17 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+    const { props } = usePage();
+    const user = (props as any).auth?.user as { role?: string } | undefined;
+    const isAdmin = user?.role === 'admin';
+
+    const adminNavItems: NavItem[] = isAdmin
+        ? [
+              { title: 'Admin Dashboard', href: '/admin/dashboard', icon: LayoutGrid },
+              { title: 'Admin Projects', href: '/admin/projects', icon: Folder },
+              { title: 'Admin Reports', href: '/admin/reports', icon: BookOpen },
+          ]
+        : [];
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -53,7 +64,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain items={[...mainNavItems, ...adminNavItems]} />
             </SidebarContent>
 
             <SidebarFooter>
