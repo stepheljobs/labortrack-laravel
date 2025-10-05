@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Requests\LaborStoreRequest;
 use App\Models\Labor;
 use App\Models\Project;
+use App\Models\ProjectMessage;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -98,5 +99,27 @@ class ProjectAdminController extends Controller
         ]);
         $project->supervisors()->syncWithoutDetaching([$data['user_id']]);
         return back()->with('status', 'Supervisor assigned');
+    }
+
+    public function storeMessage(Request $request, Project $project)
+    {
+        $data = $request->validate([
+            'message' => ['required', 'string'],
+            'photo' => ['nullable', 'file', 'image', 'max:5120'],
+        ]);
+
+        $payload = [
+            'project_id' => $project->id,
+            'user_id' => $request->user()->id,
+            'message' => $data['message'],
+        ];
+
+        if ($request->hasFile('photo')) {
+            $payload['photo_path'] = $request->file('photo')->store('message-photos', 'public');
+        }
+
+        ProjectMessage::create($payload);
+
+        return back()->with('status', 'Message posted');
     }
 }

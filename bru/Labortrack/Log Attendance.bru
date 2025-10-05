@@ -1,0 +1,56 @@
+meta {
+  name: Log Attendance
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseurl}}/api/attendance/log
+  body: multipartForm
+  auth: bearer
+}
+
+body:multipartForm {
+  labor_id: 1
+  project_id: 1
+  latitude: 40.7128
+  longitude: -74.0060
+  timestamp: 2024-01-15T09:00:00.000000Z
+  photo: @file(/path/to/your/photo.jpg)
+}
+
+auth:bearer {
+  token: 2|nvV8R4OQCSKpDxsnMnLxga25sfixRUyTLOFRDD9e43978383
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has success field", function() {
+    expect(res.getBody().success).to.be.true;
+  });
+  
+  test("Response contains attendance data", function() {
+    expect(res.getBody().data).to.have.property('id');
+    expect(res.getBody().data).to.have.property('labor');
+    expect(res.getBody().data).to.have.property('project_id');
+    expect(res.getBody().data).to.have.property('photo_url');
+    expect(res.getBody().data).to.have.property('latitude');
+    expect(res.getBody().data).to.have.property('longitude');
+    expect(res.getBody().data).to.have.property('timestamp');
+  });
+  
+  test("Labor data is present", function() {
+    expect(res.getBody().data.labor).to.have.property('id');
+    expect(res.getBody().data.labor).to.have.property('name');
+    expect(res.getBody().data.labor).to.have.property('project_id');
+  });
+  
+  test("Supervisor data is present", function() {
+    expect(res.getBody().data.supervisor).to.have.property('id');
+    expect(res.getBody().data.supervisor).to.have.property('name');
+    expect(res.getBody().data.supervisor).to.have.property('email');
+  });
+}

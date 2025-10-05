@@ -1,7 +1,7 @@
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -50,7 +50,14 @@ export default function Dashboard({ projectsCount, todayAttendance, recentMessag
                         )}
                         {recentMessages.map((m) => (
                             <div key={m.id} className="px-4 py-3 text-sm">
-                                <div className="text-muted-foreground">{m.created_at} — {m.user?.name} — {m.project?.name}</div>
+                                <div className="flex items-center justify-between gap-2">
+                                    <div className="text-muted-foreground truncate">{m.created_at} — {m.user?.name} — {m.project?.name}</div>
+                                    {m.project?.id && (
+                                        <Link className="text-blue-600 hover:underline whitespace-nowrap" href={`/projects/${m.project.id}?tab=messages`}>
+                                            Reply
+                                        </Link>
+                                    )}
+                                </div>
                                 <div className="mt-1">{m.message}</div>
                             </div>
                         ))}
@@ -60,4 +67,3 @@ export default function Dashboard({ projectsCount, todayAttendance, recentMessag
         </AppLayout>
     );
 }
-

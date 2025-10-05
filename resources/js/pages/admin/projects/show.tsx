@@ -2,7 +2,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Head, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Users, MessageSquare, Calendar } from 'lucide-react';
 
 type Labor = { id:number; name:string; contact_number?:string; role?:string };
@@ -13,6 +13,15 @@ export default function AdminProjectShow({ project, supervisors }: { project: { 
     const assign = useForm({ user_id: supervisors[0]?.id ?? '' });
     const labor = useForm({ name:'', contact_number:'', role:'' });
     const [tab, setTab] = useState<'labors'|'attendance'|'messages'>('labors');
+    const messageForm = useForm<{ message: string; photo: File | null }>({ message: '', photo: null });
+
+    useEffect(() => {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const t = params.get('tab');
+            if (t === 'messages') setTab('messages');
+        } catch {}
+    }, []);
 
     const submitAssign = (e: React.FormEvent) => {
         e.preventDefault();
@@ -133,15 +142,48 @@ export default function AdminProjectShow({ project, supervisors }: { project: { 
                         )}
 
                         {tab === 'messages' && (
-                            <div className="rounded-lg border divide-y">
-                                {project.messages.length === 0 && <div className="p-3 text-sm text-muted-foreground">No messages yet.</div>}
-                                {project.messages.map((m) => (
-                                    <div key={m.id} className="p-3 space-y-1">
-                                        <div className="text-xs text-muted-foreground">{m.created_at} — {m.user?.name}</div>
-                                        <div className="text-sm">{m.message}</div>
-                                        {m.photo_url && <a className="text-blue-600 text-sm hover:underline" href={m.photo_url} target="_blank">Photo</a>}
+                            <div className="space-y-4">
+
+                                <div className="rounded-lg border divide-y">
+                                    {project.messages.length === 0 && <div className="p-3 text-sm text-muted-foreground">No messages yet.</div>}
+                                    {project.messages.map((m) => (
+                                        <div key={m.id} className="p-3 space-y-1">
+                                            <div className="text-xs text-muted-foreground">{m.created_at} — {m.user?.name}</div>
+                                            <div className="text-sm">{m.message}</div>
+                                            {m.photo_url && <a className="text-blue-600 text-sm hover:underline" href={m.photo_url} target="_blank">Photo</a>}
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <form
+                                    onSubmit={(e) => {
+                                        e.preventDefault();
+                                        messageForm.post(`/projects/${project.id}/messages`, {
+                                            onSuccess: () => messageForm.reset('message', 'photo'),
+                                            forceFormData: true,
+                                        });
+                                    }}
+                                    className="rounded-lg border p-3 space-y-2"
+                                >
+                                    <label className="block text-sm font-medium">Post a message</label>
+                                    <textarea
+                                        className="w-full border rounded-md px-3 py-2"
+                                        rows={3}
+                                        value={messageForm.data.message}
+                                        onChange={(e) => messageForm.setData('message', e.target.value)}
+                                        placeholder="Write your message..."
+                                        required
+                                    />
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => messageForm.setData('photo', e.target.files?.[0] ?? null)}
+                                        />
+                                        <Button type="submit" disabled={messageForm.processing}>Send</Button>
                                     </div>
-                                ))}
+                                </form>
+
                             </div>
                         )}
                     </CardContent>
