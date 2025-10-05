@@ -1,7 +1,7 @@
 import AppLayout from '@/layouts/app-layout';
 import { Head } from '@inertiajs/react';
 
-type Log = { id:number; timestamp?:string; project?:{id:number;name:string}; labor?:{id:number;name:string}; supervisor?:{id:number;name:string}; latitude:number; longitude:number; location_address?:string; photo_url?:string|null };
+type Log = { id:number; timestamp?:string; project?:{id:number;name:string}; labor?:{id:number;name:string}; supervisor?:{id:number;name:string}; type?:'clock_in'|'clock_out'; latitude:number; longitude:number; location_address?:string; photo_url?:string|null };
 
 export default function AdminReportsIndex({ projects, logs, filters }: { projects: Array<{id:number;name:string}>, logs: { data: Log[]; meta: { current_page:number; last_page:number; total:number } }, filters: { project_id?:number; from?:string; to?:string } }) {
     return (
@@ -36,6 +36,7 @@ export default function AdminReportsIndex({ projects, logs, filters }: { project
                                 <th className="text-left px-3 py-2">Project</th>
                                 <th className="text-left px-3 py-2">Labor</th>
                                 <th className="text-left px-3 py-2">Supervisor</th>
+                                <th className="text-left px-3 py-2">Type</th>
                                 <th className="text-left px-3 py-2">Lat</th>
                                 <th className="text-left px-3 py-2">Lng</th>
                                 <th className="text-left px-3 py-2">Address</th>
@@ -49,6 +50,7 @@ export default function AdminReportsIndex({ projects, logs, filters }: { project
                                     <td className="px-3 py-2">{log.project?.name}</td>
                                     <td className="px-3 py-2">{log.labor?.name}</td>
                                     <td className="px-3 py-2">{log.supervisor?.name}</td>
+                                    <td className="px-3 py-2">{log.type === 'clock_out' ? 'Clock Out' : 'Clock In'}</td>
                                     <td className="px-3 py-2">{log.latitude}</td>
                                     <td className="px-3 py-2">{log.longitude}</td>
                                     <td className="px-3 py-2">{log.location_address}</td>
@@ -62,4 +64,3 @@ export default function AdminReportsIndex({ projects, logs, filters }: { project
         </AppLayout>
     );
 }
-

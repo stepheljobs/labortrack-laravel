@@ -29,7 +29,7 @@ class AttendanceController extends ApiController
         abort_unless($labor->project_id === $project->id, 422, 'Labor does not belong to project');
         abort_unless($project->supervisors()->where('user_id', $request->user()->id)->exists(), 403);
 
-        // Store photo
+        // Store photo (supports file upload or base64 converted in request)
         $path = $request->file('photo')->store('attendance-photos', 'public');
 
         // Reverse geocode
@@ -39,6 +39,7 @@ class AttendanceController extends ApiController
             'labor_id' => $labor->id,
             'supervisor_id' => $request->user()->id,
             'project_id' => $project->id,
+            'type' => $data['type'] ?? 'clock_in',
             'photo_path' => $path,
             'latitude' => (float) $data['latitude'],
             'longitude' => (float) $data['longitude'],
@@ -97,4 +98,3 @@ class AttendanceController extends ApiController
         ]);
     }
 }
-

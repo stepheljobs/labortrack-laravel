@@ -31,6 +31,7 @@
                 <th>Project</th>
                 <th>Labor</th>
                 <th>Supervisor</th>
+                <th>Type</th>
                 <th>Lat</th>
                 <th>Lng</th>
                 <th>Address</th>
@@ -44,6 +45,7 @@
                     <td>{{ $log->project?->name }}</td>
                     <td>{{ $log->labor?->name }}</td>
                     <td>{{ $log->supervisor?->name }}</td>
+                    <td>{{ $log->type === 'clock_out' ? 'Clock Out' : 'Clock In' }}</td>
                     <td>{{ $log->latitude }}</td>
                     <td>{{ $log->longitude }}</td>
                     <td>{{ $log->location_address && strlen($log->location_address) > 60 ? substr($log->location_address,0,60).'…' : $log->location_address }}</td>

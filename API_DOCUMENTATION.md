@@ -227,7 +227,8 @@ Returns a paginated list of labors assigned to a specific project.
         "id": 1,
         "name": "John Smith",
         "contact_number": "+1234567890",
-        "role": "Foreman",
+        "designation": "Foreman",
+        "daily_rate": 125.50,
         "project_id": 1
       }
     ],
@@ -254,14 +255,16 @@ Creates a new labor entry for a specific project.
 {
   "name": "John Smith",
   "contact_number": "+1234567890",
-  "role": "Foreman"
+  "designation": "Foreman",
+  "daily_rate": 125.50
 }
 ```
 
 **Validation Rules:**
 - `name`: required, string, max 255 characters
 - `contact_number`: optional, string, max 50 characters
-- `role`: optional, string, max 100 characters
+- `designation`: optional, string, max 100 characters
+- `daily_rate`: optional, number, min 0
 
 **Response:**
 ```json
@@ -271,7 +274,8 @@ Creates a new labor entry for a specific project.
     "id": 1,
     "name": "John Smith",
     "contact_number": "+1234567890",
-    "role": "Foreman",
+    "designation": "Foreman",
+    "daily_rate": 125.50,
     "project_id": 1
   },
   "message": "Labor created"
@@ -305,7 +309,9 @@ Deletes a labor entry.
 
 Logs attendance for a labor with photo and location data.
 
-**Request Body (multipart/form-data):**
+You can submit the request in either of the following formats:
+
+1) multipart/form-data (file upload):
 - `labor_id`: integer, required, must exist in labors table
 - `project_id`: integer, required, must exist in projects table
 - `photo`: file, required, image file, max 5MB
@@ -313,10 +319,21 @@ Logs attendance for a labor with photo and location data.
 - `longitude`: numeric, required, between -180 and 180
 - `timestamp`: date, required, ISO format
 
+2) application/json (base64 string):
+- `labor_id`: integer, required, must exist in labors table
+- `project_id`: integer, required, must exist in projects table
+- `photo`: string, required, base64 image; data URI format recommended
+  - Example: `data:image/jpeg;base64,/9j/4AAQSkZJRgABAQ...`
+- `latitude`: numeric, required, between -90 and 90
+- `longitude`: numeric, required, between -180 and 180
+- `timestamp`: date, required, ISO format
+
+In both cases, the server validates `photo` as an image and stores it.
+
 **Validation Rules:**
 - `labor_id`: required, integer, exists in labors table
 - `project_id`: required, integer, exists in projects table
-- `photo`: required, file, image, max 5120KB (5MB)
+- `photo`: required, image, max 5120KB (5MB)
 - `latitude`: required, numeric, between -90 and 90
 - `longitude`: required, numeric, between -180 and 180
 - `timestamp`: required, valid date
@@ -619,7 +636,8 @@ Posts a new message to a project.
   "id": 1,
   "name": "John Smith",
   "contact_number": "+1234567890",
-  "role": "Foreman",
+  "designation": "Foreman",
+  "daily_rate": 125.50,
   "project_id": 1
 }
 ```
@@ -631,6 +649,7 @@ Posts a new message to a project.
   "labor": { ... },
   "supervisor": { ... },
   "project_id": 1,
+  "type": "clock_in",
   "photo_url": "http://localhost/storage/attendance-photos/photo.jpg",
   "latitude": 40.7128,
   "longitude": -74.0060,

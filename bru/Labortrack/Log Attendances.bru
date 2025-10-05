@@ -1,5 +1,5 @@
 meta {
-  name: Log Attendance
+  name: Log Attendances
   type: http
   seq: 3
 }
@@ -10,6 +10,10 @@ post {
   auth: bearer
 }
 
+auth:bearer {
+  token: 2|nvV8R4OQCSKpDxsnMnLxga25sfixRUyTLOFRDD9e43978383
+}
+
 body:json {
   labor_id: 1
   project_id: 1
@@ -17,8 +21,4 @@ body:json {
   longitude: -74.0060
   timestamp: 2024-01-15T09:00:00.000000Z
   photo: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQ..."
-}
-
-auth:bearer {
-  token: 2|nvV8R4OQCSKpDxsnMnLxga25sfixRUyTLOFRDD9e43978383
 }

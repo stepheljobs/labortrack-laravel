@@ -2,52 +2,73 @@
 
 namespace Database\Seeders;
 
+use App\Models\AttendanceLog;
 use App\Models\Labor;
 use App\Models\Project;
+use App\Models\ProjectMessage;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
+//
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // Core users
         $admin = User::firstOrCreate(
             ['email' => 'admin@example.com'],
             ['name' => 'Admin', 'password' => 'password', 'role' => 'admin']
         );
 
-        $supervisor = User::firstOrCreate(
-            ['email' => 'supervisor@example.com'],
-            ['name' => 'Supervisor', 'password' => 'password', 'role' => 'supervisor']
-        );
-
-        $projectA = Project::firstOrCreate([
-            'name' => 'Tower A',
-            'created_by' => $admin->id,
-        ], [
-            'description' => 'High-rise construction',
-            'location_address' => 'Downtown',
+        // Additional admins and supervisors
+        User::factory()->count(1)->create(['role' => 'admin']);
+        $supervisors = collect([
+            User::firstOrCreate(['email' => 'supervisor@example.com'], ['name' => 'Supervisor One', 'password' => 'password', 'role' => 'supervisor']),
         ]);
+        $supervisors = $supervisors->merge(User::factory()->count(7)->create(['role' => 'supervisor']));
 
-        $projectB = Project::firstOrCreate([
-            'name' => 'Mall Renovation',
-            'created_by' => $admin->id,
-        ], [
-            'description' => 'Interior works',
-            'location_address' => 'City Center',
-        ]);
+        // Projects
+        $projects = Project::factory()->count(6)->create();
 
-        $projectA->supervisors()->syncWithoutDetaching([$supervisor->id]);
-        $projectB->supervisors()->syncWithoutDetaching([$supervisor->id]);
+        // Attach 2-3 supervisors per project
+        foreach ($projects as $project) {
+            $assigned = $supervisors->random(rand(2, 3))->pluck('id')->all();
+            $project->supervisors()->syncWithoutDetaching($assigned);
+        }
 
-        foreach ([
-            ['name' => 'John Doe', 'role' => 'Electrician'],
-            ['name' => 'Jane Smith', 'role' => 'Carpenter'],
-            ['name' => 'Ali Khan', 'role' => 'Mason'],
-        ] as $l) {
-            Labor::firstOrCreate(['name' => $l['name'], 'project_id' => $projectA->id], $l);
+        // Labors per project
+        foreach ($projects as $project) {
+            Labor::factory()->count(12)->create(['project_id' => $project->id]);
+        }
+
+        // Messages per project
+        foreach ($projects as $project) {
+            ProjectMessage::factory()->count(25)->create(['project_id' => $project->id]);
+        }
+
+        // Attendance logs: for each labor, generate the last 10 days with clock in/out
+        $labors = Labor::all();
+        foreach ($labors as $labor) {
+            // pick a couple supervisors from the assigned project as potential supervisors
+            $projectSupervisors = $labor->project->supervisors()->pluck('users.id');
+            for ($d = 0; $d < 10; $d++) {
+                // Clock in at morning
+                AttendanceLog::factory()->create([
+                    'labor_id' => $labor->id,
+                    'project_id' => $labor->project_id,
+                    'supervisor_id' => $projectSupervisors->isNotEmpty() ? $projectSupervisors->random() : $supervisors->random()->id,
+                    'type' => 'clock_in',
+                    'timestamp' => now()->subDays($d)->setTime(rand(6, 9), [0,15,30,45][rand(0,3)], 0),
+                ]);
+                // Clock out in evening
+                AttendanceLog::factory()->create([
+                    'labor_id' => $labor->id,
+                    'project_id' => $labor->project_id,
+                    'supervisor_id' => $projectSupervisors->isNotEmpty() ? $projectSupervisors->random() : $supervisors->random()->id,
+                    'type' => 'clock_out',
+                    'timestamp' => now()->subDays($d)->setTime(rand(16, 19), [0,15,30,45][rand(0,3)], 0),
+                ]);
+            }
         }
     }
 }
-

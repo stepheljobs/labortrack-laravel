@@ -15,6 +15,7 @@ class AttendanceLogResource extends JsonResource
             'labor' => new LaborResource($this->whenLoaded('labor')),
             'supervisor' => new UserResource($this->whenLoaded('supervisor')),
             'project_id' => $this->project_id,
+            'type' => $this->type,
             'photo_url' => $this->photo_path ? asset('storage/'.$this->photo_path) : null,
             'latitude' => $this->latitude,
             'longitude' => $this->longitude,
@@ -24,4 +25,3 @@ class AttendanceLogResource extends JsonResource
         ];
     }
 }
-

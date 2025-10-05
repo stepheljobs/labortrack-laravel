@@ -14,9 +14,9 @@ class LaborResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'contact_number' => $this->contact_number,
-            'role' => $this->role,
+            'designation' => $this->designation,
+            'daily_rate' => $this->daily_rate,
             'project_id' => $this->project_id,
         ];
     }
 }
-

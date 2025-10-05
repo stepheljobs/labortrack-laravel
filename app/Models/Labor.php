@@ -14,8 +14,13 @@ class Labor extends Model
     protected $fillable = [
         'name',
         'contact_number',
-        'role',
+        'designation',
+        'daily_rate',
         'project_id',
+    ];
+
+    protected $casts = [
+        'daily_rate' => 'decimal:2',
     ];
 
     public function project(): BelongsTo
@@ -28,4 +33,3 @@ class Labor extends Model
         return $this->hasMany(AttendanceLog::class);
     }
 }
-

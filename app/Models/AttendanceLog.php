@@ -16,6 +16,7 @@ class AttendanceLog extends Model
         'labor_id',
         'supervisor_id',
         'project_id',
+        'type',
         'photo_path',
         'latitude',
         'longitude',
@@ -27,6 +28,7 @@ class AttendanceLog extends Model
         'timestamp' => 'datetime',
         'latitude' => 'float',
         'longitude' => 'float',
+        'type' => 'string',
     ];
 
     public function labor(): BelongsTo
@@ -44,4 +46,3 @@ class AttendanceLog extends Model
         return $this->belongsTo(Project::class);
     }
 }
-

@@ -49,7 +49,7 @@ class ProjectAdminController extends Controller
 
     public function show(Project $project)
     {
-        $project->load(['labors', 'messages.user']);
+        $project->load(['labors', 'messages.user', 'supervisors']);
         $recentAttendance = $project->attendanceLogs()->with(['labor','supervisor'])
             ->latest('timestamp')->limit(20)->get();
         $supervisors = User::where('role', 'supervisor')->orderBy('name')->get(['id','name','email']);
@@ -59,11 +59,13 @@ class ProjectAdminController extends Controller
                 'name' => $project->name,
                 'description' => $project->description,
                 'location_address' => $project->location_address,
+                'assigned_supervisor_ids' => $project->supervisors->pluck('id')->values(),
                 'labors' => $project->labors->map(fn ($l) => [
                     'id' => $l->id,
                     'name' => $l->name,
                     'contact_number' => $l->contact_number,
-                    'role' => $l->role,
+                    'designation' => $l->designation,
+                    'daily_rate' => $l->daily_rate,
                 ]),
                 'messages' => $project->messages->map(fn ($m) => [
                     'id' => $m->id,
@@ -77,6 +79,7 @@ class ProjectAdminController extends Controller
                     'timestamp' => optional($log->timestamp)->toDateTimeString(),
                     'labor' => $log->labor?->only(['id','name']),
                     'supervisor' => $log->supervisor?->only(['id','name']),
+                    'type' => $log->type,
                     'latitude' => $log->latitude,
                     'longitude' => $log->longitude,
                     'photo_url' => $log->photo_path ? asset('storage/'.$log->photo_path) : null,
@@ -92,13 +95,53 @@ class ProjectAdminController extends Controller
         return back()->with('status', 'Labor created');
     }
 
+    public function updateLabor(Request $request, Project $project, Labor $labor)
+    {
+        abort_unless($labor->project_id === $project->id, 404);
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'contact_number' => ['nullable', 'string', 'max:50'],
+            'designation' => ['nullable', 'string', 'max:100'],
+            'daily_rate' => ['nullable', 'numeric', 'min:0'],
+        ]);
+        $labor->update($data);
+        return back()->with('status', 'Labor updated');
+    }
+
+    public function destroyLabor(Project $project, Labor $labor)
+    {
+        abort_unless($labor->project_id === $project->id, 404);
+        $labor->delete();
+        return back()->with('status', 'Labor deleted');
+    }
+
     public function attachSupervisor(Request $request, Project $project)
     {
         $data = $request->validate([
-            'user_id' => ['required', 'exists:users,id'],
+            'user_id' => ['nullable', 'exists:users,id'],
+            'user_ids' => ['nullable', 'array'],
+            'user_ids.*' => ['integer', 'exists:users,id'],
         ]);
-        $project->supervisors()->syncWithoutDetaching([$data['user_id']]);
-        return back()->with('status', 'Supervisor assigned');
+
+        $ids = [];
+        if (isset($data['user_id'])) {
+            $ids[] = $data['user_id'];
+        }
+        if (!empty($data['user_ids'])) {
+            $ids = array_merge($ids, $data['user_ids']);
+        }
+
+        if (!empty($ids)) {
+            if ($request->has('user_ids')) {
+                // Replace current assignments with the selected list
+                $project->supervisors()->sync($ids);
+            } else {
+                // Backward-compatible: add single user without removing others
+                $project->supervisors()->syncWithoutDetaching($ids);
+            }
+        }
+
+        return back()->with('status', 'Supervisor(s) assigned');
     }
 
     public function storeMessage(Request $request, Project $project)

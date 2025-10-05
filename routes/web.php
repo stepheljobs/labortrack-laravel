@@ -16,6 +16,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/projects/{project}', [App\Http\Controllers\Admin\ProjectAdminController::class, 'show'])->name('projects.show');
     Route::post('/projects/{project}/supervisors', [App\Http\Controllers\Admin\ProjectAdminController::class, 'attachSupervisor'])->name('projects.attachSupervisor');
     Route::post('/projects/{project}/labors', [App\Http\Controllers\Admin\ProjectAdminController::class, 'storeLabor'])->name('projects.labors.store');
+    Route::put('/projects/{project}/labors/{labor}', [App\Http\Controllers\Admin\ProjectAdminController::class, 'updateLabor'])->name('projects.labors.update');
+    Route::delete('/projects/{project}/labors/{labor}', [App\Http\Controllers\Admin\ProjectAdminController::class, 'destroyLabor'])->name('projects.labors.destroy');
     Route::post('/projects/{project}/messages', [App\Http\Controllers\Admin\ProjectAdminController::class, 'storeMessage'])->name('projects.messages.store');
     
     // Reports routes (moved from admin)

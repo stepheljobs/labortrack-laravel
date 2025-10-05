@@ -27,23 +27,38 @@
             <div class="flex items-center justify-between">
                 <h3 class="font-medium">Labors</h3>
             </div>
-            <form class="grid grid-cols-1 md:grid-cols-4 gap-2" method="post" action="{{ url('/api/projects/'.$project->id.'/labors') }}" onsubmit="return confirm('Create labor via API? Ensure you are authenticated.');">
+            <form class="grid grid-cols-1 md:grid-cols-5 gap-2" method="post" action="{{ url('/api/projects/'.$project->id.'/labors') }}" onsubmit="return confirm('Create labor via API? Ensure you are authenticated.');">
                 <input class="border rounded-md px-3 py-2" type="text" name="name" placeholder="Name" required>
                 <input class="border rounded-md px-3 py-2" type="text" name="contact_number" placeholder="Contact">
-                <input class="border rounded-md px-3 py-2" type="text" name="role" placeholder="Role">
+                <input class="border rounded-md px-3 py-2" type="text" name="designation" placeholder="Designation">
+                <input class="border rounded-md px-3 py-2" type="number" step="0.01" min="0" name="daily_rate" placeholder="Daily Rate">
                 <button class="rounded-md bg-primary text-primary-foreground px-4 py-2" type="submit">Add</button>
             </form>
             <div class="overflow-hidden rounded-lg border">
                 <table class="w-full text-sm">
                     <thead class="bg-secondary/60">
-                        <tr><th class="text-left px-3 py-2">Name</th><th class="text-left px-3 py-2">Contact</th><th class="text-left px-3 py-2">Role</th></tr>
+                        <tr>
+                            <th class="text-left px-3 py-2">Name</th>
+                            <th class="text-left px-3 py-2">Contact</th>
+                            <th class="text-left px-3 py-2">Designation</th>
+                            <th class="text-left px-3 py-2">Daily Rate</th>
+                            <th class="text-left px-3 py-2">Actions</th>
+                        </tr>
                     </thead>
                     <tbody>
                         @foreach($project->labors as $l)
                             <tr class="border-t">
                                 <td class="px-3 py-2">{{ $l->name }}</td>
                                 <td class="px-3 py-2">{{ $l->contact_number }}</td>
-                                <td class="px-3 py-2">{{ $l->role }}</td>
+                                <td class="px-3 py-2">{{ $l->designation }}</td>
+                                <td class="px-3 py-2">{{ $l->daily_rate }}</td>
+                                <td class="px-3 py-2">
+                                    <form method="post" action="{{ route('projects.labors.destroy', [$project, $l]) }}" onsubmit="return confirm('Delete this labor?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="text-red-600 hover:underline" type="submit">Delete</button>
+                                    </form>
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>

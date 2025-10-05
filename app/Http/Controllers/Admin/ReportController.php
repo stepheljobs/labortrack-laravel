@@ -36,6 +36,7 @@ class ReportController extends Controller
                     'project' => $log->project?->only(['id','name']),
                     'labor' => $log->labor?->only(['id','name']),
                     'supervisor' => $log->supervisor?->only(['id','name']),
+                    'type' => $log->type,
                     'latitude' => $log->latitude,
                     'longitude' => $log->longitude,
                     'location_address' => $log->location_address,
@@ -74,7 +75,7 @@ class ReportController extends Controller
 
         return response()->streamDownload(function () use ($query) {
             $out = fopen('php://output', 'w');
-            fputcsv($out, ['Timestamp', 'Project', 'Labor', 'Supervisor', 'Lat', 'Lng', 'Address', 'Photo URL']);
+            fputcsv($out, ['Timestamp', 'Project', 'Labor', 'Supervisor', 'Type', 'Lat', 'Lng', 'Address', 'Photo URL']);
             $query->chunk(500, function ($chunk) use ($out) {
                 foreach ($chunk as $log) {
                     fputcsv($out, [
@@ -82,6 +83,7 @@ class ReportController extends Controller
                         $log->project?->name,
                         $log->labor?->name,
                         $log->supervisor?->name,
+                        $log->type,
                         $log->latitude,
                         $log->longitude,
                         $log->location_address,
