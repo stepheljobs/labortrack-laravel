@@ -1,6 +1,8 @@
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Head, useForm, router } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import { Users, MessageSquare, Calendar } from 'lucide-react';
@@ -16,6 +18,18 @@ export default function AdminProjectShow({ project, supervisors }: { project: { 
     const [tab, setTab] = useState<'labors'|'attendance'|'messages'>('labors');
     const [editingId, setEditingId] = useState<number|null>(null);
     const edit = useForm({ name:'', contact_number:'', designation:'', daily_rate: '' as number | string | '' });
+    const [deleteId, setDeleteId] = useState<number|null>(null);
+    const [notice, setNotice] = useState<{ type: 'success'|'error'; text: string }|null>(null);
+    const [laborsSearch, setLaborsSearch] = useState('');
+    const [laborsSort, setLaborsSort] = useState<{ key: keyof Labor; dir: 'asc'|'desc' }>({ key: 'name', dir: 'asc' });
+    const [laborsPage, setLaborsPage] = useState(1);
+    const [laborsPageSize, setLaborsPageSize] = useState(10);
+    const [lightboxUrl, setLightboxUrl] = useState<string|undefined>();
+    useEffect(() => {
+        if (!notice) return;
+        const t = setTimeout(() => setNotice(null), 3000);
+        return () => clearTimeout(t);
+    }, [notice]);
     const messageForm = useForm<{ message: string; photo: File | null }>({ message: '', photo: null });
 
     useEffect(() => {
@@ -33,8 +47,14 @@ export default function AdminProjectShow({ project, supervisors }: { project: { 
 
     const submitLabor = (e: React.FormEvent) => {
         e.preventDefault();
+        setNotice(null);
         labor.post(`/projects/${project.id}/labors`, {
-            onSuccess: () => labor.reset('name','contact_number','designation','daily_rate')
+            onSuccess: () => {
+                labor.reset('name','contact_number','designation','daily_rate');
+                setNotice({ type: 'success', text: 'Labor added.' });
+            },
+            onError: () => setNotice({ type: 'error', text: 'Failed to add labor. Check inputs.' }),
+            preserveScroll: true,
         });
     };
 
@@ -50,13 +70,41 @@ export default function AdminProjectShow({ project, supervisors }: { project: { 
 
     const submitEdit = (e: React.FormEvent, id: number) => {
         e.preventDefault();
+        setNotice(null);
         edit.put(`/projects/${project.id}/labors/${id}`, {
-            onSuccess: () => { setEditingId(null); },
+            onSuccess: () => { setEditingId(null); setNotice({ type: 'success', text: 'Labor updated.' }); },
+            onError: () => setNotice({ type: 'error', text: 'Failed to update labor.' }),
+            preserveScroll: true,
         });
     };
 
     const cancelEdit = () => {
         setEditingId(null);
+    };
+
+    // client-side labors search/sort/pagination
+    const normalized = (v: any) => (v ?? '').toString().toLowerCase();
+    const filteredLabors = project.labors.filter(l =>
+        normalized(l.name).includes(laborsSearch.toLowerCase()) ||
+        normalized(l.contact_number).includes(laborsSearch.toLowerCase()) ||
+        normalized(l.designation).includes(laborsSearch.toLowerCase())
+    );
+    const sortedLabors = [...filteredLabors].sort((a,b)=>{
+        const { key, dir } = laborsSort;
+        const av = a[key] ?? '';
+        const bv = b[key] ?? '';
+        const cmp = (''+av).localeCompare(''+bv, undefined, { numeric: true, sensitivity: 'base' });
+        return dir === 'asc' ? cmp : -cmp;
+    });
+    const totalPages = Math.max(1, Math.ceil(sortedLabors.length / laborsPageSize));
+    const page = Math.min(laborsPage, totalPages);
+    const pageItems = sortedLabors.slice((page-1)*laborsPageSize, page*laborsPageSize);
+
+    const formatPeso = (val?: number|string|null) => {
+        if (val === undefined || val === null || val === '') return '';
+        const num = typeof val === 'string' ? Number(val) : val;
+        if (Number.isNaN(num)) return '';
+        return new Intl.NumberFormat('en-PH', { style:'currency', currency:'PHP', maximumFractionDigits: 2 }).format(num as number);
     };
 
     return (
@@ -117,19 +165,40 @@ export default function AdminProjectShow({ project, supervisors }: { project: { 
                                     <input className="border rounded-md px-3 py-2" type="number" step="0.01" min="0" value={(labor.data.daily_rate as any) ?? ''} onChange={e=>labor.setData('daily_rate', e.target.value)} placeholder="Daily Rate" />
                                     <Button type="submit">Add</Button>
                                 </form>
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <input className="border rounded-md px-3 py-2 w-56" placeholder="Search labors..." value={laborsSearch} onChange={e=>{ setLaborsSearch(e.target.value); setLaborsPage(1); }} />
+                                    <div className="text-sm text-muted-foreground ml-auto">
+                                        {filteredLabors.length} found
+                                    </div>
+                                </div>
                                 <div className="overflow-hidden rounded-lg border">
                                     <table className="w-full text-sm">
                                         <thead className="bg-secondary/60">
                                             <tr>
-                                                <th className="text-left px-3 py-2">Name</th>
-                                                <th className="text-left px-3 py-2">Contact</th>
-                                                <th className="text-left px-3 py-2">Designation</th>
-                                                <th className="text-left px-3 py-2">Daily Rate</th>
+                                                <th className="text-left px-3 py-2 cursor-pointer" onClick={()=> setLaborsSort(s=>({ key:'name', dir: s.key==='name' && s.dir==='asc' ? 'desc' : 'asc' }))}>
+                                                    Name {laborsSort.key==='name' ? (laborsSort.dir==='asc' ? '▲' : '▼') : ''}
+                                                </th>
+                                                <th className="text-left px-3 py-2 cursor-pointer" onClick={()=> setLaborsSort(s=>({ key:'contact_number', dir: s.key==='contact_number' && s.dir==='asc' ? 'desc' : 'asc' }))}>
+                                                    Contact {laborsSort.key==='contact_number' ? (laborsSort.dir==='asc' ? '▲' : '▼') : ''}
+                                                </th>
+                                                <th className="text-left px-3 py-2 cursor-pointer" onClick={()=> setLaborsSort(s=>({ key:'designation', dir: s.key==='designation' && s.dir==='asc' ? 'desc' : 'asc' }))}>
+                                                    Designation {laborsSort.key==='designation' ? (laborsSort.dir==='asc' ? '▲' : '▼') : ''}
+                                                </th>
+                                                <th className="text-left px-3 py-2 cursor-pointer" onClick={()=> setLaborsSort(s=>({ key:'daily_rate', dir: s.key==='daily_rate' && s.dir==='asc' ? 'desc' : 'asc' }))}>
+                                                    Daily Rate {laborsSort.key==='daily_rate' ? (laborsSort.dir==='asc' ? '▲' : '▼') : ''}
+                                                </th>
                                                 <th className="text-left px-3 py-2">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {project.labors.map((l)=> (
+                                            {pageItems.length === 0 && (
+                                                <tr>
+                                                    <td className="px-3 py-6 text-center text-muted-foreground" colSpan={5}>
+                                                        No labors yet. Add the first labor using the form above.
+                                                    </td>
+                                                </tr>
+                                            )}
+                                            {pageItems.map((l)=> (
                                                 <tr key={l.id} className="border-t">
                                                     {editingId === l.id ? (
                                                         <>
@@ -155,10 +224,10 @@ export default function AdminProjectShow({ project, supervisors }: { project: { 
                                                             <td className="px-3 py-2">{l.name}</td>
                                                             <td className="px-3 py-2">{l.contact_number}</td>
                                                             <td className="px-3 py-2">{l.designation}</td>
-                                                            <td className="px-3 py-2">{l.daily_rate ?? ''}</td>
+                                                            <td className="px-3 py-2">{formatPeso(l.daily_rate)}</td>
                                                             <td className="px-3 py-2 space-x-2">
                                                                 <Button type="button" variant="secondary" size="sm" onClick={()=>startEdit(l)}>Edit</Button>
-                                                                <Button type="button" variant="destructive" size="sm" onClick={()=>{ if (confirm('Delete this labor?')) { router.delete(`/projects/${project.id}/labors/${l.id}`); } }}>Delete</Button>
+                                                                <Button type="button" variant="destructive" size="sm" onClick={()=> setDeleteId(l.id)}>Delete</Button>
                                                             </td>
                                                         </>
                                                     )}
@@ -166,6 +235,18 @@ export default function AdminProjectShow({ project, supervisors }: { project: { 
                                             ))}
                                         </tbody>
                                     </table>
+                                </div>
+                                <div className="flex items-center justify-between mt-2">
+                                    <div className="text-xs text-muted-foreground">Page {page} of {totalPages}</div>
+                                    <div className="flex items-center gap-2">
+                                        <select className="border rounded-md px-2 py-1 text-sm" value={laborsPageSize} onChange={e=>{ setLaborsPageSize(Number(e.target.value)); setLaborsPage(1); }}>
+                                            {[5,10,20,50].map(s=> <option key={s} value={s}>{s}/page</option>)}
+                                        </select>
+                                        <div className="space-x-2">
+                                            <Button type="button" size="sm" variant="secondary" disabled={page<=1} onClick={()=> setLaborsPage(p=>Math.max(1,p-1))}>Prev</Button>
+                                            <Button type="button" size="sm" variant="secondary" disabled={page>=totalPages} onClick={()=> setLaborsPage(p=>Math.min(totalPages,p+1))}>Next</Button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -210,15 +291,25 @@ export default function AdminProjectShow({ project, supervisors }: { project: { 
                         {tab === 'messages' && (
                             <div className="space-y-4">
 
-                                <div className="rounded-lg border divide-y">
-                                    {project.messages.length === 0 && <div className="p-3 text-sm text-muted-foreground">No messages yet.</div>}
-                                    {project.messages.map((m) => (
-                                        <div key={m.id} className="p-3 space-y-1">
-                                            <div className="text-xs text-muted-foreground">{m.created_at} — {m.user?.name}</div>
-                                            <div className="text-sm">{m.message}</div>
-                                            {m.photo_url && <a className="text-blue-600 text-sm hover:underline" href={m.photo_url} target="_blank">Photo</a>}
-                                        </div>
-                                    ))}
+                                <div className="rounded-lg border">
+                                    <div className="max-h-[60vh] overflow-y-auto divide-y">
+                                        {project.messages.length === 0 && (
+                                            <div className="p-3 text-sm text-muted-foreground">No messages yet. Post updates below to keep your team informed.</div>
+                                        )}
+                                        {project.messages.map((m) => (
+                                            <div key={m.id} className="p-3 space-y-2">
+                                                <div className="text-xs text-muted-foreground">{m.created_at} — {m.user?.name}</div>
+                                                <div className="text-sm whitespace-pre-wrap">{m.message}</div>
+                                                {m.photo_url && (
+                                                    <img
+                                                        src={m.photo_url}
+                                                        className="h-24 w-24 object-cover rounded-md cursor-pointer border"
+                                                        onClick={()=> setLightboxUrl(m.photo_url!)}
+                                                    />
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
 
                                 <form
@@ -254,7 +345,47 @@ export default function AdminProjectShow({ project, supervisors }: { project: { 
                         )}
                     </CardContent>
                 </Card>
+                <Dialog open={deleteId !== null} onOpenChange={(o)=> !o && setDeleteId(null)}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Delete labor?</DialogTitle>
+                        </DialogHeader>
+                        <p className="text-sm text-muted-foreground">This action cannot be undone.</p>
+                        <div className="flex justify-end gap-2 pt-2">
+                            <Button variant="secondary" onClick={()=> setDeleteId(null)}>Cancel</Button>
+                            <Button variant="destructive" onClick={()=>{
+                                if (deleteId) {
+                                    setNotice(null);
+                                    router.delete(`/projects/${project.id}/labors/${deleteId}`, {
+                                        onSuccess: ()=> setNotice({ type: 'success', text: 'Labor deleted.' }),
+                                        onError: ()=> setNotice({ type: 'error', text: 'Failed to delete labor.' }),
+                                        onFinish: ()=> setDeleteId(null),
+                                        preserveScroll: true,
+                                    });
+                                }
+                            }}>Delete</Button>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+
+                <Dialog open={!!lightboxUrl} onOpenChange={(o)=> !o && setLightboxUrl(undefined)}>
+                    <DialogContent className="sm:max-w-xl">
+                        <DialogHeader>
+                            <DialogTitle>Photo</DialogTitle>
+                        </DialogHeader>
+                        {lightboxUrl && (
+                            <img src={lightboxUrl} className="w-full h-auto rounded-md" />
+                        )}
+                    </DialogContent>
+                </Dialog>
             </div>
+            {notice && (
+                <div className="fixed bottom-4 right-4 z-50">
+                    <Alert className={`w-72 shadow-lg ${notice.type === 'success' ? 'border-green-600/40' : 'border-red-600/40'}`}>
+                        <AlertDescription>{notice.text}</AlertDescription>
+                    </Alert>
+                </div>
+            )}
         </AppLayout>
     );
 }
