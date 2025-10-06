@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('labor_id')->constrained('labors')->cascadeOnDelete();
             $table->foreignId('supervisor_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('project_id')->constrained('projects')->cascadeOnDelete();
-            $table->string('photo_path');
+            $table->string('photo_path')->nullable();
             $table->decimal('latitude', 10, 7);
             $table->decimal('longitude', 10, 7);
             $table->string('location_address')->nullable();
