@@ -11,8 +11,19 @@ jobs:
     runs-on: ubuntu-latest
     
     services:
-      sqlite:
-        image: nouchka/sqlite3:latest
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: labortrack_test
+          POSTGRES_USER: labortrack_test
+          POSTGRES_PASSWORD: password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     
     steps:
       - name: Checkout code
@@ -22,7 +33,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: pdo, sqlite, mbstring, zip, exif, pcntl, bcmath
+          extensions: pdo, pdo_pgsql, pgsql, mbstring, zip, exif, pcntl, bcmath
           coverage: none
 
       - name: Install Composer dependencies
@@ -37,18 +48,24 @@ jobs:
       - name: Install Node dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Create testing database
-        run: touch database/database.sqlite
-
       - name: Prepare Laravel application
         run: |
           cp .env.example .env
+          sed -i 's/DB_CONNECTION=sqlite/DB_CONNECTION=pgsql/' .env
+          sed -i 's/# DB_HOST=127.0.0.1/DB_HOST=127.0.0.1/' .env
+          sed -i 's/# DB_PORT=3306/DB_PORT=5432/' .env
+          sed -i 's/# DB_DATABASE=laravel/DB_DATABASE=labortrack_test/' .env
+          sed -i 's/# DB_USERNAME=root/DB_USERNAME=labortrack_test/' .env
+          sed -i 's/# DB_PASSWORD=/DB_PASSWORD=password/' .env
           php artisan key:generate
-          php artisan config:clear
-          php artisan cache:clear
 
       - name: Run migrations
         run: php artisan migrate --force
+
+      - name: Clear caches
+        run: |
+          php artisan config:clear
+          php artisan cache:clear
 
       - name: Run tests
         run: composer test
