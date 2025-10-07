@@ -47,18 +47,6 @@ jobs:
       - name: Install Composer dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'yarn'
-
-      - name: Install Node dependencies
-        run: yarn install --frozen-lockfile
-
-      - name: Build frontend assets
-        run: yarn build
-
       - name: Prepare Laravel application
         run: |
           cp .env.example .env
@@ -72,6 +60,18 @@ jobs:
           echo "SESSION_DRIVER=array" >> .env
           echo "CACHE_DRIVER=array" >> .env
           php artisan key:generate
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install Node dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build frontend assets
+        run: yarn build
 
       - name: Run migrations
         run: php artisan migrate --force
