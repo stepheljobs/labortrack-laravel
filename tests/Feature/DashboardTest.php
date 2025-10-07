@@ -67,6 +67,9 @@ test('dashboard shows project count and attendance data', function () {
         'project_id' => $project->id,
         'supervisor_id' => $user->id,
         'photo_path' => null,
+        'latitude' => 14.5995,
+        'longitude' => 120.9842,
+        'type' => 'clock_in',
     ]);
     AttendanceLog::create([
         'timestamp' => Carbon::yesterday(),
@@ -74,6 +77,9 @@ test('dashboard shows project count and attendance data', function () {
         'project_id' => $project->id,
         'supervisor_id' => $user->id,
         'photo_path' => null,
+        'latitude' => 14.5995,
+        'longitude' => 120.9842,
+        'type' => 'clock_in',
     ]);
     
     $this->actingAs($user);
