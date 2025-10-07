@@ -68,6 +68,9 @@ jobs:
           sed -i 's/# DB_DATABASE=laravel/DB_DATABASE=labortrack_test/' .env
           sed -i 's/# DB_USERNAME=root/DB_USERNAME=labortrack_test/' .env
           sed -i 's/# DB_PASSWORD=/DB_PASSWORD=password/' .env
+          echo "APP_URL=http://localhost" >> .env
+          echo "SESSION_DRIVER=array" >> .env
+          echo "CACHE_DRIVER=array" >> .env
           php artisan key:generate
 
       - name: Run migrations
@@ -80,6 +83,13 @@ jobs:
 
       - name: Execute tests
         run: composer test
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: labortrack_test
+          DB_USERNAME: labortrack_test
+          DB_PASSWORD: password
 
   lint:
     name: Code Quality
