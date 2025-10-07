@@ -1,0 +1,113 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      sqlite:
+        image: nouchka/sqlite3:latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo, sqlite, mbstring, zip, exif, pcntl, bcmath
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress --optimize-autoloader
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install Node dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Create testing database
+        run: touch database/database.sqlite
+
+      - name: Prepare Laravel application
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          php artisan config:clear
+          php artisan cache:clear
+
+      - name: Run migrations
+        run: php artisan migrate --force
+
+      - name: Run tests
+        run: composer test
+
+  build-and-deploy:
+    name: Build & Deploy
+    needs: test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install Node dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build frontend assets
+        run: yarn build
+
+      - name: Create deployment artifact
+        run: |
+          mkdir -p deployment
+          tar -czf deployment/app.tar.gz \
+            --exclude=node_modules \
+            --exclude=.git \
+            --exclude=.github \
+            --exclude=tests \
+            --exclude=storage/logs \
+            --exclude=storage/framework/cache \
+            --exclude=storage/framework/sessions \
+            --exclude=storage/framework/views \
+            --exclude=.env \
+            .
+
+      - name: Deploy to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          source: "deployment/app.tar.gz"
+          target: "/tmp/labortrack-deployment"
+
+      - name: Execute deployment script
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script_stop: true
+          script: |
+            cd ${{ secrets.VPS_DEPLOY_PATH }}
+            bash deploy.sh
+

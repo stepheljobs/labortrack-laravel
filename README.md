@@ -4,7 +4,7 @@ Backend for a construction attendance mobile app with photo verification, geoloc
 
 ## Tech Stack
 - Laravel 12, PHP 8.2+
-- MySQL/PostgreSQL/SQLite (dev uses SQLite by default)
+- PostgreSQL (production), SQLite (dev default)
 - Laravel Sanctum for API tokens
 - Storage: public disk (symlinked), S3-ready
 
@@ -82,6 +82,37 @@ Require authenticated admin (`users.role = 'admin'`).
 - Run: `php artisan test`
 - Feature tests include basic auth and projects listing.
 
+## Deployment
+
+This project includes automated CI/CD using GitHub Actions.
+
+### Quick Setup
+1. Push to `main` branch triggers automatic deployment to VPS
+2. Tests run automatically on all pull requests
+3. Zero-downtime deployments with automatic rollback on failure
+
+### Full Setup Guide
+See **[DEPLOYMENT.md](DEPLOYMENT.md)** for complete instructions on:
+- Setting up your VPS
+- Configuring GitHub Actions
+- SSH key setup
+- Troubleshooting
+
+See **[POSTGRESQL_SETUP.md](POSTGRESQL_SETUP.md)** for PostgreSQL-specific:
+- Installation and configuration
+- Database backup and restore
+- Performance tuning
+- Troubleshooting
+
+### Manual Deployment
+```bash
+# On your VPS
+cd ~/labortrack
+bash deploy.sh
+```
+
 ## Notes
 - Make sure to run `php artisan storage:link` to expose uploaded photos.
 - For production, configure S3 disk and update the upload calls to use that disk.
+- Production uses PostgreSQL - see `POSTGRESQL_SETUP.md` for database setup.
+- Development uses SQLite by default for simplicity.
