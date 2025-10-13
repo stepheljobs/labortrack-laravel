@@ -25,9 +25,8 @@ class AttendanceController extends ApiController
         $labor = Labor::findOrFail($data['labor_id']);
         $project = Project::findOrFail($data['project_id']);
 
-        // Ensure labor belongs to project and user is assigned
+        // Ensure labor belongs to project
         abort_unless($labor->project_id === $project->id, 422, 'Labor does not belong to project');
-        abort_unless($project->supervisors()->where('user_id', $request->user()->id)->exists(), 403);
 
         // Store photo (supports file upload or base64 converted in request)
         $path = $request->file('photo')->store('attendance-photos', 'public');
@@ -54,7 +53,6 @@ class AttendanceController extends ApiController
 
     public function projectLogs(Request $request, Project $project)
     {
-        abort_unless($project->supervisors()->where('user_id', $request->user()->id)->exists(), 403);
 
         $logs = $project->attendanceLogs()
             ->with(['labor', 'supervisor'])
@@ -78,11 +76,7 @@ class AttendanceController extends ApiController
 
     public function today(Request $request)
     {
-        $user = $request->user();
-        $projectIds = $user->projects()->pluck('projects.id');
-
         $logs = AttendanceLog::with(['labor', 'supervisor'])
-            ->whereIn('project_id', $projectIds)
             ->whereDate('timestamp', Carbon::today())
             ->latest('timestamp')
             ->paginate(25);

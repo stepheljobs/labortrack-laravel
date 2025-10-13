@@ -10,8 +10,7 @@ class ProjectController extends ApiController
 {
     public function index(Request $request)
     {
-        $user = $request->user();
-        $projects = $user->projects()->latest()->paginate(15);
+        $projects = \App\Models\Project::latest()->paginate(15);
         return $this->success([
             'items' => ProjectResource::collection($projects->items()),
             'meta' => [
@@ -25,13 +24,7 @@ class ProjectController extends ApiController
 
     public function show(Request $request, Project $project)
     {
-        $this->authorizeProject($request->user()->id, $project);
         return $this->success(new ProjectResource($project));
-    }
-
-    protected function authorizeProject(int $userId, Project $project): void
-    {
-        abort_unless($project->supervisors()->where('user_id', $userId)->exists(), 403);
     }
 }
 

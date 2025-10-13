@@ -12,7 +12,6 @@ class MessageController extends ApiController
 {
     public function index(Request $request, Project $project)
     {
-        abort_unless($project->supervisors()->where('user_id', $request->user()->id)->exists(), 403);
         $messages = $project->messages()->with('user')->latest()->paginate(25);
 
         return $this->success([
@@ -28,7 +27,6 @@ class MessageController extends ApiController
 
     public function store(MessageStoreRequest $request, Project $project)
     {
-        abort_unless($project->supervisors()->where('user_id', $request->user()->id)->exists(), 403);
 
         $data = [
             'project_id' => $project->id,

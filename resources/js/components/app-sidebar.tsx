@@ -11,8 +11,8 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import { usePage, Link } from '@inertiajs/react';
 import { type NavItem } from '@/types';
+import { Link } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
 import AppLogo from './app-logo';
 
@@ -24,15 +24,9 @@ const mainNavItems: NavItem[] = [
     },
 ];
 
-const footerNavItems: NavItem[] = [
-    
-];
+const footerNavItems: NavItem[] = [];
 
 export function AppSidebar() {
-    const { props } = usePage();
-    const user = (props as any).auth?.user as { role?: string } | undefined;
-    const isAdmin = user?.role === 'admin';
-
     const projectNavItems: NavItem[] = [
         { title: 'Projects', href: '/projects', icon: Folder },
         { title: 'Reports', href: '/reports', icon: BookOpen },
