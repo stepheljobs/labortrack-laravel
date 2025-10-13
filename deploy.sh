@@ -91,6 +91,19 @@ install_dependencies() {
         log_warning "Composer not found. Skipping dependency installation."
         log_warning "Make sure to install composer or deploy vendor folder."
     fi
+    
+    # Install Node.js dependencies and build frontend
+    log_info "Installing Node.js dependencies..."
+    if command -v yarn &> /dev/null; then
+        yarn install --frozen-lockfile --production=false
+        yarn build
+    elif command -v npm &> /dev/null; then
+        npm install
+        npm run build
+    else
+        log_warning "Neither Yarn nor npm found. Frontend assets may not be built."
+        log_warning "Make sure to install Node.js, Yarn/npm or deploy built assets."
+    fi
 }
 
 # Optimize Laravel
