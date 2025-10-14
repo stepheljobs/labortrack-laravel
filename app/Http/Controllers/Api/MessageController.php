@@ -31,7 +31,7 @@ class MessageController extends ApiController
         $data = [
             'project_id' => $project->id,
             'user_id' => $request->user()->id,
-            'message' => $request->validated()['message'],
+            'message' => $request->validated()['message'] ?? '',
         ];
 
         if ($request->hasFile('photo')) {

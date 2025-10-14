@@ -1,0 +1,22 @@
+meta {
+  name: MessageUpload
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseurl}}/api/projects/{{project_id}}/messages
+  body: multipart
+  auth: bearer
+}
+
+body:multipart {
+  text: "A quick update"
+  photo: @/absolute/path/to/image.jpg
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+

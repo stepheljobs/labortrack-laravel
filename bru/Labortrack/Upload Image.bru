@@ -1,0 +1,19 @@
+meta {
+  name: Upload Image
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseurl}}/api/projects/1/messages
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: 5|XelxUsySlAoLUer0T5MQSdMtLeRR3Ka7lYexnO8o48ca7735
+}
+
+body:multipart-form {
+  photo: /Users/stepheljobs/Desktop/reports1.jpg
+}
