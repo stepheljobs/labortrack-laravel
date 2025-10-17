@@ -6,8 +6,12 @@ meta {
 
 post {
   url: {{baseurl}}/api/attendance/log
-  body: json
+  body: multipartForm
   auth: bearer
+}
+
+auth:bearer {
+  token: 2|nvV8R4OQCSKpDxsnMnLxga25sfixRUyTLOFRDD9e43978383
 }
 
 body:json {
@@ -19,6 +23,11 @@ body:json {
   photo: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQ..."
 }
 
-auth:bearer {
-  token: 2|nvV8R4OQCSKpDxsnMnLxga25sfixRUyTLOFRDD9e43978383
+body:multipart-form {
+  labor_id: 1
+  project_id: 1
+  latitude: 40.7128
+  longitude: -74.0060
+  timestamp: 2024-01-15T09:00:00.000000Z
+  photo: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQ..."
 }

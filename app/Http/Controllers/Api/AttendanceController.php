@@ -29,6 +29,9 @@ class AttendanceController extends ApiController
         abort_unless($labor->project_id === $project->id, 422, 'Labor does not belong to project');
 
         // Store photo (supports file upload or base64 converted in request)
+        if (!$request->hasFile('photo')) {
+            return $this->error('Photo is required and must be a valid image', 422);
+        }
         $path = $request->file('photo')->store('attendance-photos', 'public');
 
         // Reverse geocode

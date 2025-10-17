@@ -28,6 +28,11 @@ class AttendanceStoreRequest extends ApiRequest
             }
         }
 
+        // Normalize empty string or empty array photo to null so 'file' rule doesn't trigger
+        if ($photo === '' || $photo === null || (is_array($photo) && count($photo) === 0)) {
+            $this->merge(['photo' => null]);
+        }
+
         if (is_string($candidate)) {
             [$binary, $extension] = $this->decodeBase64Image($candidate);
 
