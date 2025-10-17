@@ -86,13 +86,7 @@ class PayrollRun extends Model
 
     public function getPeriodLabelAttribute(): string
     {
-        return match ($this->period_type) {
-            'weekly' => 'Weekly',
-            'bi_weekly' => 'Bi-Weekly',
-            'monthly' => 'Monthly',
-            'custom' => 'Custom',
-            default => 'Unknown',
-        };
+        return $this->start_date->format('M d, Y') . ' - ' . $this->end_date->format('M d, Y');
     }
 
     public function getStatusLabelAttribute(): string
