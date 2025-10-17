@@ -9,9 +9,7 @@
 - **Test**: `php artisan test` / `composer test` (Pest)
 - **Single Test**: `php artisan test --filter TestName` or `./vendor/bin/pest tests/Feature/SpecificTest.php`
 
-## Code Style
-
-### TypeScript/React
+## TypeScript/React
 
 - Strict TypeScript with `noImplicitAny`, `strict: true`
 - Import React: `import * as React from "react"` or JSX with `react-jsx`
@@ -21,7 +19,7 @@
 - Prefer `cn()` utility for conditional classes with Tailwind
 - Prettier: single quotes, semicolons, 80 char width, tabWidth: 4
 
-### PHP
+## PHP
 
 - PSR-4 autoloading (`App\` namespace)
 - Laravel conventions: Models singular, controllers plural
@@ -31,7 +29,7 @@
 - Relationships as methods with proper return types
 - Database: snake_case, PHP: camelCase
 
-### Testing & Quality
+## Testing & Quality
 
 - Use Pest for testing with descriptive names
 - ESLint with React hooks rules enforced
