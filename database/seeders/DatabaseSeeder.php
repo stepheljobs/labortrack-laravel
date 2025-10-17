@@ -167,16 +167,18 @@ class DatabaseSeeder extends Seeder
                     continue;
                 }
 
-                $minuteSlots = [0, 10, 15, 20, 30, 45];
-                $inHour = mt_rand(7, 8);
-                $outHour = mt_rand(16, 17);
+                $minuteSlots = [0, 5, 10, 15]; // Small variation around exact times
                 $overtime = mt_rand(1, 100) <= 20; // 20% OT
+                
+                // Consistent 8:00 AM clock-in with small minute variation
+                $clockIn = $date->copy()->setTime(8, $minuteSlots[array_rand($minuteSlots)], 0);
+                
+                // Consistent 5:00 PM clock-out with small minute variation, or overtime
                 if ($overtime) {
-                    $outHour = mt_rand(18, 19);
+                    $clockOut = $date->copy()->setTime(18, $minuteSlots[array_rand($minuteSlots)], 0); // 6:00 PM OT
+                } else {
+                    $clockOut = $date->copy()->setTime(17, $minuteSlots[array_rand($minuteSlots)], 0); // 5:00 PM
                 }
-
-                $clockIn = $date->copy()->setTime($inHour, $minuteSlots[array_rand($minuteSlots)], 0);
-                $clockOut = $date->copy()->setTime($outHour, $minuteSlots[array_rand($minuteSlots)], 0);
 
                 // jitter around site base (approx ~50–150m)
                 $jitter = fn () => (mt_rand(-8, 8)) / 1000; // ~0.008 deg ~ ~900m max; typical ~100m
