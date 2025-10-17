@@ -19,6 +19,7 @@ import {
     ChevronUpIcon,
     ClockIcon,
     DownloadIcon,
+    PrinterIcon,
     TrendingUpIcon,
 } from 'lucide-react';
 import * as React from 'react';
@@ -815,25 +816,41 @@ const PayrollShow: React.FC<PayrollShowProps> = ({
                                                         ).toFixed(2)}
                                                     </td>
                                                     <td className="px-3 py-3 text-center">
-                                                        {entry.attendance_data && (
+                                                        <div className="flex items-center justify-center gap-1">
+                                                            {entry.attendance_data && (
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    onClick={() =>
+                                                                        toggleEntryExpansion(
+                                                                            entry.id,
+                                                                        )
+                                                                    }
+                                                                    title="View Breakdown"
+                                                                >
+                                                                    {expandedEntries.has(
+                                                                        entry.id,
+                                                                    ) ? (
+                                                                        <ChevronUpIcon className="h-4 w-4" />
+                                                                    ) : (
+                                                                        <ChevronDownIcon className="h-4 w-4" />
+                                                                    )}
+                                                                </Button>
+                                                            )}
                                                             <Button
                                                                 variant="ghost"
                                                                 size="sm"
                                                                 onClick={() =>
-                                                                    toggleEntryExpansion(
-                                                                        entry.id,
+                                                                    window.open(
+                                                                        `/payroll/entry/${entry.id}/slip`,
+                                                                        '_blank',
                                                                     )
                                                                 }
+                                                                title="Print Payroll Slip"
                                                             >
-                                                                {expandedEntries.has(
-                                                                    entry.id,
-                                                                ) ? (
-                                                                    <ChevronUpIcon className="h-4 w-4" />
-                                                                ) : (
-                                                                    <ChevronDownIcon className="h-4 w-4" />
-                                                                )}
+                                                                <PrinterIcon className="h-4 w-4" />
                                                             </Button>
-                                                        )}
+                                                        </div>
                                                     </td>
                                                 </tr>
                                                 {expandedEntries.has(

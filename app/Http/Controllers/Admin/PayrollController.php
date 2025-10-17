@@ -348,6 +348,21 @@ class PayrollController extends Controller
         ]);
     }
 
+    public function payrollSlip(PayrollEntry $payrollEntry)
+    {
+        $payrollEntry->load(['labor', 'project', 'payrollRun.approvedBy']);
+
+        return view('payroll.slip', [
+            'entry' => $payrollEntry,
+            'company' => [
+                'name' => config('app.name', 'LaborTrack'),
+                'address' => 'Company Address',
+                'phone' => '+63 XXX XXX XXXX',
+                'email' => 'info@labortrack.com',
+            ],
+        ]);
+    }
+
     public function destroy(PayrollRun $payrollRun)
     {
         if (! $payrollRun->canBeDeleted()) {

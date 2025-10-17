@@ -41,6 +41,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/payroll/{payrollRun}/approve', [App\Http\Controllers\Admin\PayrollController::class, 'approve'])->name('payroll.approve');
     Route::post('/payroll/{payrollRun}/mark-paid', [App\Http\Controllers\Admin\PayrollController::class, 'markAsPaid'])->name('payroll.mark-paid');
     Route::get('/payroll/{payrollRun}/export', [App\Http\Controllers\Admin\PayrollController::class, 'export'])->name('payroll.export');
+    Route::get('/payroll/entry/{payrollEntry}/slip', [App\Http\Controllers\Admin\PayrollController::class, 'payrollSlip'])->name('payroll.entry.slip');
     Route::delete('/payroll/{payrollRun}', [App\Http\Controllers\Admin\PayrollController::class, 'destroy'])->name('payroll.destroy');
     
     // Payroll Settings
