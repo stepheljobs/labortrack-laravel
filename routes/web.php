@@ -20,6 +20,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/projects/{project}/labors/{labor}', [App\Http\Controllers\Admin\ProjectAdminController::class, 'destroyLabor'])->name('projects.labors.destroy');
     Route::post('/projects/{project}/messages', [App\Http\Controllers\Admin\ProjectAdminController::class, 'storeMessage'])->name('projects.messages.store');
     
+    // Employees routes
+    Route::get('/employees', [App\Http\Controllers\Admin\EmployeeController::class, 'index'])->name('employees.index');
+    Route::post('/employees', [App\Http\Controllers\Admin\EmployeeController::class, 'store'])->name('employees.store');
+    Route::put('/employees/{employee}', [App\Http\Controllers\Admin\EmployeeController::class, 'update'])->name('employees.update');
+    Route::delete('/employees/{employee}', [App\Http\Controllers\Admin\EmployeeController::class, 'destroy'])->name('employees.destroy');
+    Route::get('/employees/search', [App\Http\Controllers\Admin\EmployeeController::class, 'search'])->name('employees.search');
+    Route::post('/projects/{project}/labors/{employee}/assign', [App\Http\Controllers\Admin\EmployeeController::class, 'assignToProject'])->name('projects.labors.assign');
+    
     // Reports routes (moved from admin)
     Route::get('/reports', [App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export', [App\Http\Controllers\Admin\ReportController::class, 'export'])->name('reports.export');

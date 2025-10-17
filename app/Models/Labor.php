@@ -28,6 +28,16 @@ class Labor extends Model
         return $this->belongsTo(Project::class);
     }
 
+    public function scopeUnassigned($query)
+    {
+        return $query->whereNull('project_id');
+    }
+
+    public function scopeAssigned($query)
+    {
+        return $query->whereNotNull('project_id');
+    }
+
     public function attendanceLogs(): HasMany
     {
         return $this->hasMany(AttendanceLog::class);
