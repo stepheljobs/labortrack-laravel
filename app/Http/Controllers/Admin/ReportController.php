@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\AttendanceLog;
+use App\Models\Labor;
 use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -15,12 +16,15 @@ class ReportController extends Controller
     public function index(Request $request)
     {
         $projects = Project::orderBy('name')->get(['id','name']);
+        $labors = Labor::orderBy('name')->get(['id','name']);
         $selectedProject = $request->integer('project_id');
+        $selectedLabor = $request->integer('labor_id');
         $from = $request->date('from');
         $to = $request->date('to');
 
         $query = AttendanceLog::with(['labor', 'supervisor', 'project'])
             ->when($selectedProject, fn ($q) => $q->where('project_id', $selectedProject))
+            ->when($selectedLabor, fn ($q) => $q->where('labor_id', $selectedLabor))
             ->when($from, fn ($q) => $q->whereDate('timestamp', '>=', $from))
             ->when($to, fn ($q) => $q->whereDate('timestamp', '<=', $to))
             ->latest('timestamp');
@@ -29,6 +33,7 @@ class ReportController extends Controller
 
         return Inertia::render('admin/reports/index', [
             'projects' => $projects,
+            'labors' => $labors,
             'logs' => [
                 'data' => $logs->map(fn ($log) => [
                     'id' => $log->id,
@@ -51,6 +56,7 @@ class ReportController extends Controller
             ],
             'filters' => [
                 'project_id' => $selectedProject,
+                'labor_id' => $selectedLabor,
                 'from' => $from?->toDateString(),
                 'to' => $to?->toDateString(),
             ],
@@ -61,12 +67,14 @@ class ReportController extends Controller
     {
         $request->validate([
             'project_id' => ['nullable', 'integer', 'exists:projects,id'],
+            'labor_id' => ['nullable', 'integer', 'exists:labors,id'],
             'from' => ['nullable', 'date'],
             'to' => ['nullable', 'date'],
         ]);
 
         $query = AttendanceLog::with(['labor', 'supervisor', 'project'])
             ->when($request->filled('project_id'), fn ($q) => $q->where('project_id', $request->integer('project_id')))
+            ->when($request->filled('labor_id'), fn ($q) => $q->where('labor_id', $request->integer('labor_id')))
             ->when($request->filled('from'), fn ($q) => $q->whereDate('timestamp', '>=', $request->date('from')))
             ->when($request->filled('to'), fn ($q) => $q->whereDate('timestamp', '<=', $request->date('to')))
             ->orderBy('timestamp');
