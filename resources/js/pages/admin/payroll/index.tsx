@@ -28,13 +28,7 @@ import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { format } from 'date-fns';
-import {
-    CalculatorIcon,
-    CheckIcon,
-    DownloadIcon,
-    PlusIcon,
-    TrashIcon,
-} from 'lucide-react';
+import { CalculatorIcon, CheckIcon, PlusIcon, TrashIcon } from 'lucide-react';
 import * as React from 'react';
 import { toast } from 'sonner';
 
@@ -145,9 +139,17 @@ const PayrollIndex: React.FC<PayrollIndexProps> = ({
             `/payroll/${payrollId}/calculate`,
             {},
             {
-                onSuccess: (response: any) => {
+                onSuccess: (response: unknown) => {
+                    const typedResponse = response as {
+                        props: {
+                            summary: {
+                                employees: number;
+                                total_amount: number;
+                            };
+                        };
+                    };
                     toast.success(
-                        `Payroll calculated: ${response.props.summary.employees} employees, ₱${response.props.summary.total_amount}`,
+                        `Payroll calculated: ${typedResponse.props.summary.employees} employees, ₱${typedResponse.props.summary.total_amount}`,
                     );
                 },
                 onError: () => {
@@ -585,15 +587,6 @@ const PayrollIndex: React.FC<PayrollIndexProps> = ({
                                                     : 'Mark Paid'}
                                             </Button>
                                         )}
-
-                                        <Link
-                                            href={`/payroll/${payroll.id}/export`}
-                                        >
-                                            <Button variant="outline" size="sm">
-                                                <DownloadIcon className="mr-2 h-4 w-4" />
-                                                Export
-                                            </Button>
-                                        </Link>
 
                                         {payroll.can_be_deleted && (
                                             <Button

@@ -51,9 +51,9 @@ const PayrollCreate: React.FC<PayrollCreateProps> = ({
         notes: '',
     });
 
-    const [configFields, setConfigFields] = React.useState<Record<string, any>>(
-        defaultConfig.weekly,
-    );
+    const [configFields, setConfigFields] = React.useState<
+        Record<string, unknown>
+    >(defaultConfig.weekly);
 
     const handlePeriodTypeChange = (value: string) => {
         setData('period_type', value);
@@ -61,7 +61,7 @@ const PayrollCreate: React.FC<PayrollCreateProps> = ({
         setConfigFields(defaultConfig[value as keyof DefaultConfig]);
     };
 
-    const handleConfigChange = (key: string, value: any) => {
+    const handleConfigChange = (key: string, value: unknown) => {
         const newConfig = { ...data.period_config, [key]: value };
         setData('period_config', newConfig);
         setConfigFields(newConfig);

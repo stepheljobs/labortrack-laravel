@@ -357,12 +357,15 @@ const PayrollShow: React.FC<PayrollShowProps> = ({
                             </Button>
                         )}
 
-                        <Link href={`/payroll/${payrollRun.id}/export`}>
-                            <Button variant="outline">
-                                <DownloadIcon className="mr-2 h-4 w-4" />
-                                Export CSV
-                            </Button>
-                        </Link>
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                window.location.href = `/payroll/${payrollRun.id}/export`;
+                            }}
+                        >
+                            <DownloadIcon className="mr-2 h-4 w-4" />
+                            Export CSV
+                        </Button>
                     </div>
                 </div>
 
@@ -549,12 +552,6 @@ const PayrollShow: React.FC<PayrollShowProps> = ({
                                         }
                                     />
                                 </div>
-                                <Link href={`/payroll/${payrollRun.id}/export`}>
-                                    <Button variant="outline" size="sm">
-                                        <DownloadIcon className="mr-2 h-4 w-4" />
-                                        Export CSV
-                                    </Button>
-                                </Link>
                             </div>
                         </div>
                     </CardHeader>

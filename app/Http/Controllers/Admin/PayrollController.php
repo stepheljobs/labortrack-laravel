@@ -8,9 +8,7 @@ use App\Models\PayrollEntry;
 use App\Models\PayrollRun;
 use App\Services\PayrollCalculationService;
 use App\Services\PayrollPeriodService;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
-
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -180,7 +178,7 @@ class PayrollController extends Controller
 
     public function calculate(PayrollRun $payrollRun)
     {
-        if (!$payrollRun->canBeCalculated()) {
+        if (! $payrollRun->canBeCalculated()) {
             return back()->with('error', 'This payroll cannot be calculated in its current status.');
         }
 
@@ -194,7 +192,7 @@ class PayrollController extends Controller
             $labors = Labor::whereHas('attendanceLogs', function ($query) use ($payrollRun) {
                 $query->whereBetween('timestamp', [
                     $payrollRun->start_date->startOfDay(),
-                    $payrollRun->end_date->endOfDay()
+                    $payrollRun->end_date->endOfDay(),
                 ]);
             })->get();
 
@@ -213,7 +211,7 @@ class PayrollController extends Controller
                 $primaryProject = $labor->attendanceLogs()
                     ->whereBetween('timestamp', [
                         $payrollRun->start_date->startOfDay(),
-                        $payrollRun->end_date->endOfDay()
+                        $payrollRun->end_date->endOfDay(),
                     ])
                     ->whereNotNull('project_id')
                     ->selectRaw('project_id, COUNT(*) as count')
@@ -252,18 +250,18 @@ class PayrollController extends Controller
 
             DB::commit();
 
-            return back()->with('success', "Payroll calculated successfully: {$labors->count()} employees, ₱" . number_format($totalAmount, 2) . ", " . number_format($totalRegularHours + $totalOvertimeHours, 2) . " hours");
+            return back()->with('success', "Payroll calculated successfully: {$labors->count()} employees, ₱".number_format($totalAmount, 2).', '.number_format($totalRegularHours + $totalOvertimeHours, 2).' hours');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            
-            return back()->with('error', 'Failed to calculate payroll: ' . $e->getMessage());
+
+            return back()->with('error', 'Failed to calculate payroll: '.$e->getMessage());
         }
     }
 
     public function approve(PayrollRun $payrollRun)
     {
-        if (!$payrollRun->canBeApproved()) {
+        if (! $payrollRun->canBeApproved()) {
             return back()->with('error', 'This payroll cannot be approved in its current status.');
         }
 
@@ -278,7 +276,7 @@ class PayrollController extends Controller
 
     public function markAsPaid(PayrollRun $payrollRun)
     {
-        if (!$payrollRun->canBeMarkedAsPaid()) {
+        if (! $payrollRun->canBeMarkedAsPaid()) {
             return back()->with('error', 'This payroll cannot be marked as paid in its current status.');
         }
 
@@ -293,11 +291,11 @@ class PayrollController extends Controller
     {
         $payrollRun->load(['payrollEntries.labor:id,name', 'payrollEntries.project:id,name']);
 
-        $filename = "payroll_{$payrollRun->period_type}_{$payrollRun->start_date->format('Ymd')}_to_{$payrollRun->end_date->format('Ymd')}.csv";
+        $filename = "payroll_{$payrollRun->start_date->format('Ymd')}_to_{$payrollRun->end_date->format('Ymd')}.csv";
 
         return response()->streamDownload(function () use ($payrollRun) {
             $out = fopen('php://output', 'w');
-            
+
             // Header
             fputcsv($out, [
                 'Employee ID',
@@ -312,41 +310,47 @@ class PayrollController extends Controller
                 'Regular Pay',
                 'Overtime Pay',
                 'Total Pay',
-            ]);
+            ], ',', '"', '\\');
 
             // Data
             foreach ($payrollRun->payrollEntries as $entry) {
                 fputcsv($out, [
                     $entry->labor_id,
-                    $entry->labor?->name,
-                    $entry->project?->name,
-                    $entry->days_worked,
-                    $entry->regular_hours,
-                    $entry->overtime_hours,
-                    $entry->total_hours,
-                    $entry->hourly_rate,
-                    $entry->overtime_rate,
-                    $entry->regular_pay,
-                    $entry->overtime_pay,
-                    $entry->total_pay,
-                ]);
+                    $entry->labor?->name ?? 'Unknown',
+                    $entry->project?->name ?? 'N/A',
+                    $entry->days_worked ?? 0,
+                    $entry->regular_hours ?? 0,
+                    $entry->overtime_hours ?? 0,
+                    $entry->total_hours ?? 0,
+                    $entry->hourly_rate ?? 0,
+                    $entry->overtime_rate ?? 0,
+                    $entry->regular_pay ?? 0,
+                    $entry->overtime_pay ?? 0,
+                    $entry->total_pay ?? 0,
+                ], ',', '"', '\\');
             }
 
             // Summary
-            fputcsv($out, []);
-            fputcsv($out, ['SUMMARY']);
-            fputcsv($out, ['Total Employees:', $payrollRun->payrollEntries->count()]);
-            fputcsv($out, ['Total Regular Hours:', $payrollRun->total_regular_hours]);
-            fputcsv($out, ['Total Overtime Hours:', $payrollRun->total_overtime_hours]);
-            fputcsv($out, ['Total Amount:', $payrollRun->total_amount]);
+            fputcsv($out, [], ',', '"', '\\');
+            fputcsv($out, ['SUMMARY'], ',', '"', '\\');
+            fputcsv($out, ['Total Employees:', $payrollRun->payrollEntries->count()], ',', '"', '\\');
+            fputcsv($out, ['Total Regular Hours:', number_format($payrollRun->total_regular_hours ?? 0, 2)], ',', '"', '\\');
+            fputcsv($out, ['Total Overtime Hours:', number_format($payrollRun->total_overtime_hours ?? 0, 2)], ',', '"', '\\');
+            fputcsv($out, ['Total Amount:', number_format($payrollRun->total_amount ?? 0, 2)], ',', '"', '\\');
 
             fclose($out);
-        }, $filename, ['Content-Type' => 'text/csv']);
+        }, $filename, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+        ]);
     }
 
     public function destroy(PayrollRun $payrollRun)
     {
-        if (!$payrollRun->canBeDeleted()) {
+        if (! $payrollRun->canBeDeleted()) {
             return back()->with('error', 'This payroll cannot be deleted in its current status.');
         }
 
