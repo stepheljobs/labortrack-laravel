@@ -14,6 +14,8 @@ import {
     ArrowLeftIcon,
     CalculatorIcon,
     CheckIcon,
+    ChevronDownIcon,
+    ChevronUpIcon,
     ClockIcon,
     DownloadIcon,
     TrendingUpIcon,
@@ -48,7 +50,7 @@ interface PayrollEntry {
     average_hours_per_day: number;
     average_daily_pay: number;
     overtime_percentage: number;
-    attendance_data?: any;
+    attendance_data?: Record<string, unknown>;
     notes?: string;
 }
 
@@ -61,7 +63,7 @@ interface PayrollRun {
     status: string;
     status_label: string;
     status_color: string;
-    period_config?: any;
+    period_config?: Record<string, unknown>;
     notes?: string;
     approved_by?: { id: number; name: string };
     approved_at?: string;
@@ -98,7 +100,7 @@ const PayrollShow: React.FC<PayrollShowProps> = ({
     const [isCalculating, setIsCalculating] = React.useState(false);
 
     // Ensure entries exists and is an array
-    const safeEntries = entries || [];
+    const safeEntries = React.useMemo(() => entries || [], [entries]);
 
     // Ensure summary exists and has default values
     const safeSummary = summary || {
@@ -117,6 +119,11 @@ const PayrollShow: React.FC<PayrollShowProps> = ({
     const [expandedEntries, setExpandedEntries] = React.useState<Set<number>>(
         new Set(),
     );
+    const [searchTerm, setSearchTerm] = React.useState('');
+    const [sortConfig, setSortConfig] = React.useState<{
+        key: string;
+        direction: 'asc' | 'desc';
+    } | null>(null);
 
     const handleCalculate = () => {
         setIsCalculating(true);
@@ -124,9 +131,17 @@ const PayrollShow: React.FC<PayrollShowProps> = ({
             `/payroll/${payrollRun.id}/calculate`,
             {},
             {
-                onSuccess: (response: any) => {
+                onSuccess: (response: unknown) => {
+                    const typedResponse = response as {
+                        props: {
+                            summary: {
+                                employees: number;
+                                total_amount: number;
+                            };
+                        };
+                    };
                     toast.success(
-                        `Payroll calculated: ${response.props.summary.employees} employees, ₱${response.props.summary.total_amount}`,
+                        `Payroll calculated: ${typedResponse.props.summary.employees} employees, ₱${typedResponse.props.summary.total_amount}`,
                     );
                 },
                 onError: () => {
@@ -186,6 +201,69 @@ const PayrollShow: React.FC<PayrollShowProps> = ({
         }
         setExpandedEntries(newExpanded);
     };
+
+    const handleSort = (key: string) => {
+        let direction: 'asc' | 'desc' = 'asc';
+        if (
+            sortConfig &&
+            sortConfig.key === key &&
+            sortConfig.direction === 'asc'
+        ) {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const getSortValue = (
+        entry: PayrollEntry,
+        key: string,
+    ): string | number => {
+        switch (key) {
+            case 'labor':
+                return entry.labor?.name || '';
+            case 'project':
+                return entry.project?.name || '';
+            case 'daily_rate':
+                return entry.labor?.daily_rate || 0;
+            default:
+                return (
+                    ((entry as unknown as Record<string, unknown>)[key] as
+                        | string
+                        | number) || 0
+                );
+        }
+    };
+
+    const sortedEntries = React.useMemo(() => {
+        const sortableEntries = [...safeEntries];
+        if (sortConfig !== null) {
+            sortableEntries.sort((a, b) => {
+                const aValue = getSortValue(a, sortConfig.key);
+                const bValue = getSortValue(b, sortConfig.key);
+
+                if (aValue < bValue) {
+                    return sortConfig.direction === 'asc' ? -1 : 1;
+                }
+                if (aValue > bValue) {
+                    return sortConfig.direction === 'asc' ? 1 : -1;
+                }
+                return 0;
+            });
+        }
+        return sortableEntries;
+    }, [safeEntries, sortConfig]);
+
+    const filteredEntries = React.useMemo(() => {
+        return sortedEntries.filter(
+            (entry) =>
+                entry.labor?.name
+                    ?.toLowerCase()
+                    .includes(searchTerm.toLowerCase()) ||
+                entry.project?.name
+                    ?.toLowerCase()
+                    .includes(searchTerm.toLowerCase()),
+        );
+    }, [sortedEntries, searchTerm]);
 
     const getStatusBadgeVariant = (color: string) => {
         switch (color) {
@@ -447,235 +525,48 @@ const PayrollShow: React.FC<PayrollShowProps> = ({
                 {/* Employee Details */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>Employee Payroll Details</CardTitle>
-                        <CardDescription>
-                            Detailed breakdown of payroll calculations for each
-                            employee
-                        </CardDescription>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <CardTitle>Employee Payroll Details</CardTitle>
+                                <CardDescription>
+                                    Detailed breakdown of payroll calculations
+                                    for each employee
+                                </CardDescription>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="relative">
+                                    <div className="absolute top-1/2 left-3 flex h-4 w-4 -translate-y-1/2 items-center justify-center text-muted-foreground">
+                                        🔍
+                                    </div>
+                                    <input
+                                        type="text"
+                                        placeholder="Search employees..."
+                                        className="rounded-md border py-2 pr-4 pl-10 text-sm focus:ring-2 focus:ring-primary focus:outline-none"
+                                        value={searchTerm}
+                                        onChange={(e) =>
+                                            setSearchTerm(e.target.value)
+                                        }
+                                    />
+                                </div>
+                                <Link href={`/payroll/${payrollRun.id}/export`}>
+                                    <Button variant="outline" size="sm">
+                                        <DownloadIcon className="mr-2 h-4 w-4" />
+                                        Export CSV
+                                    </Button>
+                                </Link>
+                            </div>
+                        </div>
                     </CardHeader>
                     <CardContent>
-                        <div className="space-y-4">
-                            {safeEntries.map((entry) => (
-                                <div
-                                    key={entry.id}
-                                    className="space-y-4 rounded-lg border p-4"
-                                >
-                                    <div className="flex items-start justify-between">
-                                        <div>
-                                            <h3 className="font-semibold">
-                                                {entry.labor?.name}
-                                            </h3>
-                                            <p className="text-sm text-muted-foreground">
-                                                {entry.project?.name &&
-                                                    `Project: ${entry.project.name} • `}
-                                                Daily Rate: ₱
-                                                {Number(
-                                                    entry.labor?.daily_rate ||
-                                                        0,
-                                                ).toFixed(2)}{' '}
-                                                • Hourly Rate: ₱
-                                                {Number(
-                                                    entry.hourly_rate || 0,
-                                                ).toFixed(2)}
-                                            </p>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="font-semibold">
-                                                ₱
-                                                {Number(
-                                                    entry.total_pay || 0,
-                                                ).toFixed(2)}
-                                            </p>
-                                            <p className="text-sm text-muted-foreground">
-                                                {Number(
-                                                    entry.total_hours || 0,
-                                                ).toFixed(2)}{' '}
-                                                hours • {entry.days_worked || 0}{' '}
-                                                days
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
-                                        <div>
-                                            <p className="font-medium">
-                                                Regular Hours
-                                            </p>
-                                            <p className="text-muted-foreground">
-                                                {Number(
-                                                    entry.regular_hours || 0,
-                                                ).toFixed(2)}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <p className="font-medium">
-                                                Overtime Hours
-                                            </p>
-                                            <p className="text-muted-foreground">
-                                                {Number(
-                                                    entry.overtime_hours || 0,
-                                                ).toFixed(2)}{' '}
-                                                (
-                                                {Number(
-                                                    entry.overtime_percentage ||
-                                                        0,
-                                                ).toFixed(1)}
-                                                %)
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <p className="font-medium">
-                                                Regular Pay
-                                            </p>
-                                            <p className="text-muted-foreground">
-                                                ₱
-                                                {Number(
-                                                    entry.regular_pay || 0,
-                                                ).toFixed(2)}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <p className="font-medium">
-                                                Overtime Pay
-                                            </p>
-                                            <p className="text-muted-foreground">
-                                                ₱
-                                                {Number(
-                                                    entry.overtime_pay || 0,
-                                                ).toFixed(2)}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center justify-between">
-                                        <p className="text-sm text-muted-foreground">
-                                            Avg:{' '}
-                                            {Number(
-                                                entry.average_hours_per_day ||
-                                                    0,
-                                            ).toFixed(2)}{' '}
-                                            hrs/day • ₱
-                                            {Number(
-                                                entry.average_daily_pay || 0,
-                                            ).toFixed(2)}
-                                            /day
-                                        </p>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() =>
-                                                toggleEntryExpansion(entry.id)
-                                            }
-                                        >
-                                            {expandedEntries.has(entry.id)
-                                                ? 'Hide Details'
-                                                : 'Show Details'}
-                                        </Button>
-                                    </div>
-
-                                    {expandedEntries.has(entry.id) &&
-                                        entry.attendance_data && (
-                                            <div className="border-t pt-4">
-                                                <h4 className="mb-2 font-medium">
-                                                    Daily Attendance Breakdown
-                                                </h4>
-                                                <div className="space-y-2 text-sm">
-                                                    {Object.entries(
-                                                        entry.attendance_data,
-                                                    ).map(
-                                                        ([date, data]: [
-                                                            string,
-                                                            any,
-                                                        ]) => (
-                                                            <div
-                                                                key={date}
-                                                                className="rounded bg-muted/50 p-2"
-                                                            >
-                                                                <div className="flex items-center justify-between">
-                                                                    <span className="font-medium">
-                                                                        {format(
-                                                                            new Date(
-                                                                                date,
-                                                                            ),
-                                                                            'MMM dd, yyyy',
-                                                                        )}
-                                                                    </span>
-                                                                    <span>
-                                                                        {Number(
-                                                                            data.total_hours ||
-                                                                                0,
-                                                                        ).toFixed(
-                                                                            2,
-                                                                        )}{' '}
-                                                                        hrs (₱
-                                                                        {Number(
-                                                                            (data.total_hours ||
-                                                                                0) *
-                                                                                (entry.hourly_rate ||
-                                                                                    0),
-                                                                        ).toFixed(
-                                                                            2,
-                                                                        )}
-                                                                        )
-                                                                    </span>
-                                                                </div>
-                                                                {data.records &&
-                                                                    data.records
-                                                                        .length >
-                                                                        0 && (
-                                                                        <div className="mt-1 space-y-1 text-xs text-muted-foreground">
-                                                                            {data.records.map(
-                                                                                (
-                                                                                    record: any,
-                                                                                    index: number,
-                                                                                ) => (
-                                                                                    <div
-                                                                                        key={
-                                                                                            index
-                                                                                        }
-                                                                                    >
-                                                                                        {format(
-                                                                                            new Date(
-                                                                                                record.clock_in,
-                                                                                            ),
-                                                                                            'HH:mm',
-                                                                                        )}{' '}
-                                                                                        -{' '}
-                                                                                        {format(
-                                                                                            new Date(
-                                                                                                record.clock_out,
-                                                                                            ),
-                                                                                            'HH:mm',
-                                                                                        )}
-
-                                                                                        (
-                                                                                        {Number(
-                                                                                            record.hours ||
-                                                                                                0,
-                                                                                        ).toFixed(
-                                                                                            2,
-                                                                                        )}{' '}
-                                                                                        hrs)
-                                                                                    </div>
-                                                                                ),
-                                                                            )}
-                                                                        </div>
-                                                                    )}
-                                                            </div>
-                                                        ),
-                                                    )}
-                                                </div>
-                                            </div>
-                                        )}
-                                </div>
-                            ))}
-
-                            {safeEntries.length === 0 && (
-                                <div className="py-8 text-center">
-                                    <p className="text-muted-foreground">
-                                        No payroll entries found
-                                    </p>
-                                    {payrollRun.can_be_calculated && (
+                        {filteredEntries.length === 0 ? (
+                            <div className="py-8 text-center">
+                                <p className="text-muted-foreground">
+                                    {searchTerm
+                                        ? 'No employees found matching your search'
+                                        : 'No payroll entries found'}
+                                </p>
+                                {!searchTerm &&
+                                    payrollRun.can_be_calculated && (
                                         <Button
                                             className="mt-4"
                                             onClick={handleCalculate}
@@ -685,9 +576,507 @@ const PayrollShow: React.FC<PayrollShowProps> = ({
                                             Calculate Payroll
                                         </Button>
                                     )}
-                                </div>
-                            )}
-                        </div>
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto rounded-lg border">
+                                <table className="w-full min-w-[800px] text-sm">
+                                    <thead className="sticky top-0 bg-secondary/60">
+                                        <tr>
+                                            <th
+                                                className="cursor-pointer px-3 py-3 text-left font-medium whitespace-nowrap"
+                                                onClick={() =>
+                                                    handleSort('labor')
+                                                }
+                                            >
+                                                Employee
+                                                {sortConfig?.key === 'labor' &&
+                                                    (sortConfig.direction ===
+                                                    'asc'
+                                                        ? ' ▲'
+                                                        : ' ▼')}
+                                            </th>
+                                            <th
+                                                className="cursor-pointer px-3 py-3 text-left font-medium whitespace-nowrap"
+                                                onClick={() =>
+                                                    handleSort('project')
+                                                }
+                                            >
+                                                Project
+                                                {sortConfig?.key ===
+                                                    'project' &&
+                                                    (sortConfig.direction ===
+                                                    'asc'
+                                                        ? ' ▲'
+                                                        : ' ▼')}
+                                            </th>
+                                            <th
+                                                className="cursor-pointer px-3 py-3 text-right font-medium whitespace-nowrap"
+                                                onClick={() =>
+                                                    handleSort('daily_rate')
+                                                }
+                                            >
+                                                Daily Rate
+                                                {sortConfig?.key ===
+                                                    'daily_rate' &&
+                                                    (sortConfig.direction ===
+                                                    'asc'
+                                                        ? ' ▲'
+                                                        : ' ▼')}
+                                            </th>
+                                            <th
+                                                className="cursor-pointer px-3 py-3 text-right font-medium whitespace-nowrap"
+                                                onClick={() =>
+                                                    handleSort('regular_hours')
+                                                }
+                                            >
+                                                Regular Hours
+                                                {sortConfig?.key ===
+                                                    'regular_hours' &&
+                                                    (sortConfig.direction ===
+                                                    'asc'
+                                                        ? ' ▲'
+                                                        : ' ▼')}
+                                            </th>
+                                            <th
+                                                className="cursor-pointer px-3 py-3 text-right font-medium whitespace-nowrap"
+                                                onClick={() =>
+                                                    handleSort('overtime_hours')
+                                                }
+                                            >
+                                                OT Hours
+                                                {sortConfig?.key ===
+                                                    'overtime_hours' &&
+                                                    (sortConfig.direction ===
+                                                    'asc'
+                                                        ? ' ▲'
+                                                        : ' ▼')}
+                                            </th>
+                                            <th
+                                                className="cursor-pointer px-3 py-3 text-right font-medium whitespace-nowrap"
+                                                onClick={() =>
+                                                    handleSort('total_hours')
+                                                }
+                                            >
+                                                Total Hours
+                                                {sortConfig?.key ===
+                                                    'total_hours' &&
+                                                    (sortConfig.direction ===
+                                                    'asc'
+                                                        ? ' ▲'
+                                                        : ' ▼')}
+                                            </th>
+                                            <th
+                                                className="cursor-pointer px-3 py-3 text-right font-medium whitespace-nowrap"
+                                                onClick={() =>
+                                                    handleSort('days_worked')
+                                                }
+                                            >
+                                                Days
+                                                {sortConfig?.key ===
+                                                    'days_worked' &&
+                                                    (sortConfig.direction ===
+                                                    'asc'
+                                                        ? ' ▲'
+                                                        : ' ▼')}
+                                            </th>
+                                            <th
+                                                className="cursor-pointer px-3 py-3 text-right font-medium whitespace-nowrap"
+                                                onClick={() =>
+                                                    handleSort('regular_pay')
+                                                }
+                                            >
+                                                Regular Pay
+                                                {sortConfig?.key ===
+                                                    'regular_pay' &&
+                                                    (sortConfig.direction ===
+                                                    'asc'
+                                                        ? ' ▲'
+                                                        : ' ▼')}
+                                            </th>
+                                            <th
+                                                className="cursor-pointer px-3 py-3 text-right font-medium whitespace-nowrap"
+                                                onClick={() =>
+                                                    handleSort('overtime_pay')
+                                                }
+                                            >
+                                                OT Pay
+                                                {sortConfig?.key ===
+                                                    'overtime_pay' &&
+                                                    (sortConfig.direction ===
+                                                    'asc'
+                                                        ? ' ▲'
+                                                        : ' ▼')}
+                                            </th>
+                                            <th
+                                                className="cursor-pointer px-3 py-3 text-right font-medium whitespace-nowrap"
+                                                onClick={() =>
+                                                    handleSort('total_pay')
+                                                }
+                                            >
+                                                Total Pay
+                                                {sortConfig?.key ===
+                                                    'total_pay' &&
+                                                    (sortConfig.direction ===
+                                                    'asc'
+                                                        ? ' ▲'
+                                                        : ' ▼')}
+                                            </th>
+                                            <th className="px-3 py-3 text-center font-medium whitespace-nowrap">
+                                                Actions
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {filteredEntries.map((entry) => (
+                                            <React.Fragment key={entry.id}>
+                                                <tr className="border-t hover:bg-muted/50">
+                                                    <td className="px-3 py-3">
+                                                        <div>
+                                                            <div className="font-medium">
+                                                                {entry.labor
+                                                                    ?.name ||
+                                                                    'Unknown'}
+                                                            </div>
+                                                            <div className="text-xs text-muted-foreground">
+                                                                ₱
+                                                                {Number(
+                                                                    entry.hourly_rate ||
+                                                                        0,
+                                                                ).toFixed(2)}
+                                                                /hr
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-3 py-3">
+                                                        {entry.project?.name ||
+                                                            '-'}
+                                                    </td>
+                                                    <td className="px-3 py-3 text-right">
+                                                        ₱
+                                                        {Number(
+                                                            entry.labor
+                                                                ?.daily_rate ||
+                                                                0,
+                                                        ).toFixed(2)}
+                                                    </td>
+                                                    <td className="px-3 py-3 text-right">
+                                                        {Number(
+                                                            entry.regular_hours ||
+                                                                0,
+                                                        ).toFixed(2)}
+                                                    </td>
+                                                    <td className="px-3 py-3 text-right">
+                                                        <div>
+                                                            {Number(
+                                                                entry.overtime_hours ||
+                                                                    0,
+                                                            ).toFixed(2)}
+                                                            {entry.overtime_hours >
+                                                                0 && (
+                                                                <div className="text-xs text-muted-foreground">
+                                                                    (
+                                                                    {Number(
+                                                                        entry.overtime_percentage ||
+                                                                            0,
+                                                                    ).toFixed(
+                                                                        1,
+                                                                    )}
+                                                                    %)
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-3 py-3 text-right">
+                                                        {Number(
+                                                            entry.total_hours ||
+                                                                0,
+                                                        ).toFixed(2)}
+                                                    </td>
+                                                    <td className="px-3 py-3 text-right">
+                                                        {entry.days_worked || 0}
+                                                    </td>
+                                                    <td className="px-3 py-3 text-right">
+                                                        ₱
+                                                        {Number(
+                                                            entry.regular_pay ||
+                                                                0,
+                                                        ).toFixed(2)}
+                                                    </td>
+                                                    <td className="px-3 py-3 text-right">
+                                                        ₱
+                                                        {Number(
+                                                            entry.overtime_pay ||
+                                                                0,
+                                                        ).toFixed(2)}
+                                                    </td>
+                                                    <td className="px-3 py-3 text-right font-medium">
+                                                        ₱
+                                                        {Number(
+                                                            entry.total_pay ||
+                                                                0,
+                                                        ).toFixed(2)}
+                                                    </td>
+                                                    <td className="px-3 py-3 text-center">
+                                                        {entry.attendance_data && (
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() =>
+                                                                    toggleEntryExpansion(
+                                                                        entry.id,
+                                                                    )
+                                                                }
+                                                            >
+                                                                {expandedEntries.has(
+                                                                    entry.id,
+                                                                ) ? (
+                                                                    <ChevronUpIcon className="h-4 w-4" />
+                                                                ) : (
+                                                                    <ChevronDownIcon className="h-4 w-4" />
+                                                                )}
+                                                            </Button>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                                {expandedEntries.has(
+                                                    entry.id,
+                                                ) &&
+                                                    entry.attendance_data && (
+                                                        <tr>
+                                                            <td
+                                                                colSpan={11}
+                                                                className="px-3 py-0"
+                                                            >
+                                                                <div className="ml-4 border-l-2 border-primary pb-4 pl-4">
+                                                                    <h4 className="mb-3 text-sm font-medium">
+                                                                        Daily
+                                                                        Attendance
+                                                                        Breakdown
+                                                                    </h4>
+                                                                    <div className="space-y-2">
+                                                                        {Object.entries(
+                                                                            entry.attendance_data,
+                                                                        ).map(
+                                                                            ([
+                                                                                date,
+                                                                                data,
+                                                                            ]) => {
+                                                                                const typedDate =
+                                                                                    date as string;
+                                                                                const typedData =
+                                                                                    data as {
+                                                                                        total_hours?: number;
+                                                                                        records?: Array<{
+                                                                                            clock_in: string;
+                                                                                            clock_out: string;
+                                                                                            hours: number;
+                                                                                        }>;
+                                                                                    };
+                                                                                return (
+                                                                                    <div
+                                                                                        key={
+                                                                                            typedDate
+                                                                                        }
+                                                                                        className="rounded bg-muted/50 p-3 text-sm"
+                                                                                    >
+                                                                                        <div className="flex items-center justify-between">
+                                                                                            <span className="font-medium">
+                                                                                                {format(
+                                                                                                    new Date(
+                                                                                                        typedDate,
+                                                                                                    ),
+                                                                                                    'MMM dd, yyyy',
+                                                                                                )}
+                                                                                            </span>
+                                                                                            <span>
+                                                                                                {Number(
+                                                                                                    typedData.total_hours ||
+                                                                                                        0,
+                                                                                                ).toFixed(
+                                                                                                    2,
+                                                                                                )}{' '}
+                                                                                                hrs
+                                                                                                (₱
+                                                                                                {Number(
+                                                                                                    (typedData.total_hours ||
+                                                                                                        0) *
+                                                                                                        (entry.hourly_rate ||
+                                                                                                            0),
+                                                                                                ).toFixed(
+                                                                                                    2,
+                                                                                                )}
+
+                                                                                                )
+                                                                                            </span>
+                                                                                        </div>
+                                                                                        {typedData.records &&
+                                                                                            typedData
+                                                                                                .records
+                                                                                                .length >
+                                                                                                0 && (
+                                                                                                <div className="mt-2 space-y-1 text-xs text-muted-foreground">
+                                                                                                    {typedData.records.map(
+                                                                                                        (
+                                                                                                            record: {
+                                                                                                                clock_in: string;
+                                                                                                                clock_out: string;
+                                                                                                                hours: number;
+                                                                                                            },
+                                                                                                            index: number,
+                                                                                                        ) => (
+                                                                                                            <div
+                                                                                                                key={
+                                                                                                                    index
+                                                                                                                }
+                                                                                                            >
+                                                                                                                {format(
+                                                                                                                    new Date(
+                                                                                                                        record.clock_in,
+                                                                                                                    ),
+                                                                                                                    'HH:mm',
+                                                                                                                )}{' '}
+                                                                                                                -{' '}
+                                                                                                                {format(
+                                                                                                                    new Date(
+                                                                                                                        record.clock_out,
+                                                                                                                    ),
+                                                                                                                    'HH:mm',
+                                                                                                                )}{' '}
+                                                                                                                (
+                                                                                                                {Number(
+                                                                                                                    record.hours ||
+                                                                                                                        0,
+                                                                                                                ).toFixed(
+                                                                                                                    2,
+                                                                                                                )}{' '}
+                                                                                                                hrs)
+                                                                                                            </div>
+                                                                                                        ),
+                                                                                                    )}
+                                                                                                </div>
+                                                                                            )}
+                                                                                    </div>
+                                                                                );
+                                                                            },
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    )}
+                                            </React.Fragment>
+                                        ))}
+
+                                        {/* Summary Row */}
+                                        <tr className="border-t-2 border-primary bg-primary/5 font-semibold">
+                                            <td className="px-3 py-3">
+                                                Total ({filteredEntries.length}{' '}
+                                                employees)
+                                            </td>
+                                            <td className="px-3 py-3">-</td>
+                                            <td className="px-3 py-3 text-right">
+                                                -
+                                            </td>
+                                            <td className="px-3 py-3 text-right">
+                                                {Number(
+                                                    filteredEntries.reduce(
+                                                        (sum, entry) =>
+                                                            sum +
+                                                            Number(
+                                                                entry.regular_hours ||
+                                                                    0,
+                                                            ),
+                                                        0,
+                                                    ),
+                                                ).toFixed(2)}
+                                            </td>
+                                            <td className="px-3 py-3 text-right">
+                                                {Number(
+                                                    filteredEntries.reduce(
+                                                        (sum, entry) =>
+                                                            sum +
+                                                            Number(
+                                                                entry.overtime_hours ||
+                                                                    0,
+                                                            ),
+                                                        0,
+                                                    ),
+                                                ).toFixed(2)}
+                                            </td>
+                                            <td className="px-3 py-3 text-right">
+                                                {Number(
+                                                    filteredEntries.reduce(
+                                                        (sum, entry) =>
+                                                            sum +
+                                                            Number(
+                                                                entry.total_hours ||
+                                                                    0,
+                                                            ),
+                                                        0,
+                                                    ),
+                                                ).toFixed(2)}
+                                            </td>
+                                            <td className="px-3 py-3 text-right">
+                                                {filteredEntries.reduce(
+                                                    (sum, entry) =>
+                                                        sum +
+                                                        Number(
+                                                            entry.days_worked ||
+                                                                0,
+                                                        ),
+                                                    0,
+                                                )}
+                                            </td>
+                                            <td className="px-3 py-3 text-right">
+                                                ₱
+                                                {Number(
+                                                    filteredEntries.reduce(
+                                                        (sum, entry) =>
+                                                            sum +
+                                                            Number(
+                                                                entry.regular_pay ||
+                                                                    0,
+                                                            ),
+                                                        0,
+                                                    ),
+                                                ).toFixed(2)}
+                                            </td>
+                                            <td className="px-3 py-3 text-right">
+                                                ₱
+                                                {Number(
+                                                    filteredEntries.reduce(
+                                                        (sum, entry) =>
+                                                            sum +
+                                                            Number(
+                                                                entry.overtime_pay ||
+                                                                    0,
+                                                            ),
+                                                        0,
+                                                    ),
+                                                ).toFixed(2)}
+                                            </td>
+                                            <td className="px-3 py-3 text-right">
+                                                ₱
+                                                {Number(
+                                                    filteredEntries.reduce(
+                                                        (sum, entry) =>
+                                                            sum +
+                                                            Number(
+                                                                entry.total_pay ||
+                                                                    0,
+                                                            ),
+                                                        0,
+                                                    ),
+                                                ).toFixed(2)}
+                                            </td>
+                                            <td className="px-3 py-3 text-center">
+                                                -
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>
