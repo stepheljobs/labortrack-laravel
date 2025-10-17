@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\PayrollSettingsController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\TwoFactorAuthenticationController;
@@ -22,6 +23,9 @@ Route::middleware('auth')->group(function () {
     Route::get('settings/appearance', function () {
         return Inertia::render('settings/appearance');
     })->name('appearance.edit');
+
+    Route::get('settings/payroll', [PayrollSettingsController::class, 'index'])->name('payroll.settings.index');
+    Route::put('settings/payroll', [PayrollSettingsController::class, 'update'])->name('payroll.settings.update');
 
     Route::get('settings/two-factor', [TwoFactorAuthenticationController::class, 'show'])
         ->name('two-factor.show');

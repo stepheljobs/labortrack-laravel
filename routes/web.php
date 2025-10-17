@@ -31,6 +31,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Reports routes (moved from admin)
     Route::get('/reports', [App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export', [App\Http\Controllers\Admin\ReportController::class, 'export'])->name('reports.export');
+    
+    // Payroll routes
+    Route::get('/payroll', [App\Http\Controllers\Admin\PayrollController::class, 'index'])->name('payroll.index');
+    Route::get('/payroll/create', [App\Http\Controllers\Admin\PayrollController::class, 'create'])->name('payroll.create');
+    Route::post('/payroll', [App\Http\Controllers\Admin\PayrollController::class, 'store'])->name('payroll.store');
+    Route::get('/payroll/{payrollRun}', [App\Http\Controllers\Admin\PayrollController::class, 'show'])->name('payroll.show');
+    Route::post('/payroll/{payrollRun}/calculate', [App\Http\Controllers\Admin\PayrollController::class, 'calculate'])->name('payroll.calculate');
+    Route::post('/payroll/{payrollRun}/approve', [App\Http\Controllers\Admin\PayrollController::class, 'approve'])->name('payroll.approve');
+    Route::post('/payroll/{payrollRun}/mark-paid', [App\Http\Controllers\Admin\PayrollController::class, 'markAsPaid'])->name('payroll.mark-paid');
+    Route::get('/payroll/{payrollRun}/export', [App\Http\Controllers\Admin\PayrollController::class, 'export'])->name('payroll.export');
+    Route::delete('/payroll/{payrollRun}', [App\Http\Controllers\Admin\PayrollController::class, 'destroy'])->name('payroll.destroy');
+    
+    // Payroll Settings
+    Route::get('/payroll/settings', [App\Http\Controllers\Admin\PayrollSettingsController::class, 'index'])->name('payroll.settings.index');
+    Route::put('/payroll/settings', [App\Http\Controllers\Admin\PayrollSettingsController::class, 'update'])->name('payroll.settings.update');
 });
 
 require __DIR__.'/settings.php';

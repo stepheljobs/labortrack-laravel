@@ -13,7 +13,7 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Users } from 'lucide-react';
+import { BookOpen, DollarSign, Folder, LayoutGrid, Users } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -30,6 +30,7 @@ export function AppSidebar() {
     const projectNavItems: NavItem[] = [
         { title: 'Projects', href: '/projects', icon: Folder },
         { title: 'Employees', href: '/employees', icon: Users },
+        { title: 'Payroll', href: '/payroll', icon: DollarSign },
         { title: 'Reports', href: '/reports', icon: BookOpen },
     ];
     return (
