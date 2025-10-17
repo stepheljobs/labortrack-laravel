@@ -172,38 +172,6 @@ export default function AdminProjectShow({
         assign.post(`/projects/${project.id}/supervisors`);
     };
 
-    const submitLabor = (e: React.FormEvent) => {
-        e.preventDefault();
-        setNotice(null);
-        labor.post(`/projects/${project.id}/labors`, {
-            onSuccess: () => {
-                labor.reset(
-                    'name',
-                    'contact_number',
-                    'designation',
-                    'daily_rate',
-                );
-                setNotice({ type: 'success', text: 'Labor added.' });
-            },
-            onError: () =>
-                setNotice({
-                    type: 'error',
-                    text: 'Failed to add labor. Check inputs.',
-                }),
-            preserveScroll: true,
-        });
-    };
-
-    const startEdit = (l: Labor) => {
-        setEditingId(l.id);
-        edit.setData({
-            name: l.name ?? '',
-            contact_number: l.contact_number ?? '',
-            designation: l.designation ?? '',
-            daily_rate: (l.daily_rate as string | number) ?? '',
-        });
-    };
-
     const submitEdit = (e: React.FormEvent, id: number) => {
         e.preventDefault();
         setNotice(null);
