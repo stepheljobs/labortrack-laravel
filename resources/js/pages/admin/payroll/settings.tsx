@@ -16,6 +16,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
 import { SaveIcon, SettingsIcon } from 'lucide-react';
 import * as React from 'react';
@@ -56,7 +57,7 @@ const PayrollSettings: React.FC<PayrollSettingsProps> = ({
     };
 
     return (
-        <>
+        <AppLayout>
             <Head title="Payroll Settings" />
 
             <div className="space-y-6">
@@ -391,7 +392,7 @@ const PayrollSettings: React.FC<PayrollSettingsProps> = ({
                     </div>
                 </form>
             </div>
-        </>
+        </AppLayout>
     );
 };
 

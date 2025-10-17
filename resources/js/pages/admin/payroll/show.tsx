@@ -8,6 +8,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { format } from 'date-fns';
 import {
@@ -281,7 +282,7 @@ const PayrollShow: React.FC<PayrollShowProps> = ({
     };
 
     return (
-        <>
+        <AppLayout>
             <Head title={`${payrollRun.period_label} Payroll Details`} />
 
             <div className="space-y-6">
@@ -1080,7 +1081,7 @@ const PayrollShow: React.FC<PayrollShowProps> = ({
                     </CardContent>
                 </Card>
             </div>
-        </>
+        </AppLayout>
     );
 };
 

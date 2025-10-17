@@ -16,6 +16,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { ArrowLeftIcon, CalendarIcon } from 'lucide-react';
 import * as React from 'react';
@@ -132,7 +133,7 @@ const PayrollCreate: React.FC<PayrollCreateProps> = ({
     };
 
     return (
-        <>
+        <AppLayout>
             <Head title="Create Payroll Period" />
 
             <div className="space-y-6">
@@ -478,7 +479,7 @@ const PayrollCreate: React.FC<PayrollCreateProps> = ({
                     </form>
                 </div>
             </div>
-        </>
+        </AppLayout>
     );
 };
 

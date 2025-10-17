@@ -25,6 +25,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { format } from 'date-fns';
 import {
@@ -226,7 +227,7 @@ const PayrollIndex: React.FC<PayrollIndexProps> = ({
     };
 
     return (
-        <>
+        <AppLayout>
             <Head title="Payroll Management" />
 
             <div className="space-y-6">
@@ -629,7 +630,7 @@ const PayrollIndex: React.FC<PayrollIndexProps> = ({
                     )}
                 </div>
             </div>
-        </>
+        </AppLayout>
     );
 };
 

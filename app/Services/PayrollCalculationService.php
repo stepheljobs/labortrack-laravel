@@ -163,7 +163,7 @@ class PayrollCalculationService
 
     private function calculateHours(Carbon $clockIn, Carbon $clockOut): float
     {
-        return $clockOut->diffInMinutes($clockIn) / 60;
+        return $clockOut->diffInMinutes($clockIn, true) / 60;
     }
 
     private function calculateHourlyRate(float $dailyRate): float
