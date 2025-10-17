@@ -9,15 +9,11 @@ use App\Models\Labor;
 use App\Models\Project;
 use App\Services\GeocodingService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\Support\Carbon;
 
 class AttendanceController extends ApiController
 {
-    public function __construct(private readonly GeocodingService $geocoder)
-    {
-    }
+    public function __construct(private readonly GeocodingService $geocoder) {}
 
     public function store(AttendanceStoreRequest $request)
     {
@@ -28,11 +24,8 @@ class AttendanceController extends ApiController
         // Ensure labor belongs to project
         abort_unless($labor->project_id === $project->id, 422, 'Labor does not belong to project');
 
-        // Store photo (supports file upload or base64 converted in request)
-        if (!$request->hasFile('photo')) {
-            return $this->error('Photo is required and must be a valid image', 422);
-        }
-        $path = $request->file('photo')->store('attendance-photos', 'public');
+        // Store Cloudinary URL directly
+        $path = $request->validated()['photo'];
 
         // Reverse geocode
         $address = $this->geocoder->reverse((float) $data['latitude'], (float) $data['longitude']);

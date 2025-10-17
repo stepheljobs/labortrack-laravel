@@ -3,14 +3,10 @@
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
-it('posts a project message with multipart photo only', function () {
-    Storage::fake('public');
-
+it('posts a project message with Cloudinary URL photo only', function () {
     $user = User::factory()->create(['password' => 'password']);
     $project = Project::factory()->create();
 
@@ -21,17 +17,16 @@ it('posts a project message with multipart photo only', function () {
 
     $token = $login['data']['token'];
 
-    $response = $this->withHeaders(['Authorization' => 'Bearer ' . $token])
-        ->post('/api/projects/' . $project->id . '/messages', [
-            'photo' => UploadedFile::fake()->image('message.jpg'),
+    $cloudinaryUrl = 'https://res.cloudinary.com/cdn-stepheljobs/image/upload/v1760742939/Primetop/Chats/message_25_1760742936758.jpg';
+
+    $response = $this->withHeaders(['Authorization' => 'Bearer '.$token])
+        ->post('/api/projects/'.$project->id.'/messages', [
+            'photo' => $cloudinaryUrl,
         ]);
 
     $response->assertCreated();
 
-    expect($response['data']['photo_url'] ?? null)->not->toBeNull();
-
-    $stored = Storage::disk('public')->files('message-photos');
-    expect($stored)->not->toBeEmpty();
+    expect($response['data']['photo_url'] ?? null)->toBe($cloudinaryUrl);
 });
 
 it('posts a text-only project message without photo', function () {
@@ -45,9 +40,9 @@ it('posts a text-only project message without photo', function () {
 
     $token = $login['data']['token'];
 
-    $response = $this->withHeaders(['Authorization' => 'Bearer ' . $token])
-        ->postJson('/api/projects/' . $project->id . '/messages', [
-            'message' => 'Hello project!'
+    $response = $this->withHeaders(['Authorization' => 'Bearer '.$token])
+        ->postJson('/api/projects/'.$project->id.'/messages', [
+            'message' => 'Hello project!',
         ]);
 
     $response->assertCreated();
@@ -56,9 +51,7 @@ it('posts a text-only project message without photo', function () {
     expect($response['data']['photo_url'] ?? null)->toBeNull();
 });
 
-it('posts a project message with base64 data URI photo', function () {
-    Storage::fake('public');
-
+it('posts a project message with both message and Cloudinary URL photo', function () {
     $user = User::factory()->create(['password' => 'password']);
     $project = Project::factory()->create();
 
@@ -69,19 +62,18 @@ it('posts a project message with base64 data URI photo', function () {
 
     $token = $login['data']['token'];
 
-    $dataUri = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAuMBg6zjO9QAAAAASUVORK5CYII=';
+    $cloudinaryUrl = 'https://res.cloudinary.com/cdn-stepheljobs/image/upload/v1760742939/Primetop/Chats/message_25_1760742936758.jpg';
 
-    $response = $this->withHeaders(['Authorization' => 'Bearer ' . $token])
-        ->postJson('/api/projects/' . $project->id . '/messages', [
-            'photo' => $dataUri,
+    $response = $this->withHeaders(['Authorization' => 'Bearer '.$token])
+        ->postJson('/api/projects/'.$project->id.'/messages', [
+            'message' => 'Photo message',
+            'photo' => $cloudinaryUrl,
         ]);
 
     $response->assertCreated();
 
-    expect($response['data']['photo_url'] ?? null)->not->toBeNull();
-
-    $stored = Storage::disk('public')->files('message-photos');
-    expect($stored)->not->toBeEmpty();
+    expect($response['data']['message'] ?? null)->toBe('Photo message');
+    expect($response['data']['photo_url'] ?? null)->toBe($cloudinaryUrl);
 });
 
 it('fails validation when neither message nor photo provided', function () {
@@ -95,11 +87,29 @@ it('fails validation when neither message nor photo provided', function () {
 
     $token = $login['data']['token'];
 
-    $response = $this->withHeaders(['Authorization' => 'Bearer ' . $token])
-        ->postJson('/api/projects/' . $project->id . '/messages', []);
+    $response = $this->withHeaders(['Authorization' => 'Bearer '.$token])
+        ->postJson('/api/projects/'.$project->id.'/messages', []);
 
     $response->assertStatus(422);
     expect($response['errors']['photo'] ?? null)->not->toBeNull();
 });
 
+it('fails validation with invalid URL format', function () {
+    $user = User::factory()->create(['password' => 'password']);
+    $project = Project::factory()->create();
 
+    $login = $this->postJson('/api/login', [
+        'email' => $user->email,
+        'password' => 'password',
+    ])->assertOk();
+
+    $token = $login['data']['token'];
+
+    $response = $this->withHeaders(['Authorization' => 'Bearer '.$token])
+        ->postJson('/api/projects/'.$project->id.'/messages', [
+            'photo' => 'https://example.com/image.jpg',
+        ]);
+
+    $response->assertStatus(422);
+    expect($response['errors']['photo'] ?? null)->not->toBeNull();
+});

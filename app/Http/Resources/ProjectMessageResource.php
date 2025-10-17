@@ -15,9 +15,8 @@ class ProjectMessageResource extends JsonResource
             'project_id' => $this->project_id,
             'user' => new UserResource($this->whenLoaded('user')),
             'message' => $this->message,
-            'photo_url' => $this->photo_path ? asset('storage/'.$this->photo_path) : null,
+            'photo_url' => $this->photo_path,
             'created_at' => optional($this->created_at)->toISOString(),
         ];
     }
 }
-

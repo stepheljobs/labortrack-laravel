@@ -34,8 +34,8 @@ class MessageController extends ApiController
             'message' => $request->validated()['message'] ?? '',
         ];
 
-        if ($request->hasFile('photo')) {
-            $data['photo_path'] = $request->file('photo')->store('message-photos', 'public');
+        if ($request->filled('photo')) {
+            $data['photo_path'] = $request->validated()['photo'];
         }
 
         $message = ProjectMessage::create($data);
@@ -44,4 +44,3 @@ class MessageController extends ApiController
         return $this->success(new ProjectMessageResource($message), 'Message posted', 201);
     }
 }
-

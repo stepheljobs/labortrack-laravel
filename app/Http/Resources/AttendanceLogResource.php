@@ -16,7 +16,7 @@ class AttendanceLogResource extends JsonResource
             'supervisor' => new UserResource($this->whenLoaded('supervisor')),
             'project_id' => $this->project_id,
             'type' => $this->type,
-            'photo_url' => $this->photo_path ? asset('storage/'.$this->photo_path) : null,
+            'photo_url' => $this->photo_path,
             'latitude' => $this->latitude,
             'longitude' => $this->longitude,
             'location_address' => $this->location_address,
