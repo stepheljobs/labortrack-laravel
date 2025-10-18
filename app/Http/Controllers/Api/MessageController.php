@@ -12,7 +12,10 @@ class MessageController extends ApiController
 {
     public function index(Request $request, Project $project)
     {
-        $messages = $project->messages()->with('user')->latest()->paginate(25);
+        $messages = $project->messages()
+            ->with('user')
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
 
         return $this->success([
             'items' => ProjectMessageResource::collection($messages->items()),

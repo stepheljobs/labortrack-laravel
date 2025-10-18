@@ -1,4 +1,5 @@
 import MultiSelectChips from '@/components/multi-select-chips';
+import ProjectChat from '@/components/project-chat';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -63,12 +64,7 @@ export default function AdminProjectShow({
     const assign = useForm<{ user_ids: number[] }>({
         user_ids: project.assigned_supervisor_ids ?? [],
     });
-    const labor = useForm({
-        name: '',
-        contact_number: '',
-        designation: '',
-        daily_rate: '' as number | string | '',
-    });
+
     const [tab, setTab] = useState<'labors' | 'attendance' | 'messages'>(
         'labors',
     );
@@ -101,10 +97,6 @@ export default function AdminProjectShow({
         const t = setTimeout(() => setNotice(null), 3000);
         return () => clearTimeout(t);
     }, [notice]);
-    const messageForm = useForm<{ message: string; photo: File | null }>({
-        message: '',
-        photo: null,
-    });
 
     useEffect(() => {
         try {
@@ -322,7 +314,6 @@ export default function AdminProjectShow({
                     <CardContent>
                         {tab === 'labors' && (
                             <div className="space-y-3">
-
                                 {/* Employee Dropdown Section */}
                                 <div className="rounded-lg border bg-muted/30 p-4">
                                     <h3 className="mb-3 text-sm font-medium">
@@ -850,97 +841,10 @@ export default function AdminProjectShow({
                         )}
 
                         {tab === 'messages' && (
-                            <div className="space-y-4">
-                                <div className="rounded-lg border">
-                                    <div className="max-h-[60vh] divide-y overflow-y-auto">
-                                        {project.messages.length === 0 && (
-                                            <div className="p-3 text-sm text-muted-foreground">
-                                                No messages yet. Post updates
-                                                below to keep your team
-                                                informed.
-                                            </div>
-                                        )}
-                                        {project.messages.map((m) => (
-                                            <div
-                                                key={m.id}
-                                                className="space-y-2 p-3"
-                                            >
-                                                <div className="text-xs text-muted-foreground">
-                                                    {m.created_at} —{' '}
-                                                    {m.user?.name}
-                                                </div>
-                                                <div className="text-sm whitespace-pre-wrap">
-                                                    {m.message}
-                                                </div>
-                                                {m.photo_url && (
-                                                    <img
-                                                        src={m.photo_url}
-                                                        className="h-24 w-24 cursor-pointer rounded-md border object-cover"
-                                                        onClick={() =>
-                                                            setLightboxUrl(
-                                                                m.photo_url!,
-                                                            )
-                                                        }
-                                                    />
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <form
-                                    onSubmit={(e) => {
-                                        e.preventDefault();
-                                        messageForm.post(
-                                            `/projects/${project.id}/messages`,
-                                            {
-                                                onSuccess: () =>
-                                                    messageForm.reset(
-                                                        'message',
-                                                        'photo',
-                                                    ),
-                                                forceFormData: true,
-                                            },
-                                        );
-                                    }}
-                                    className="space-y-2 rounded-lg border p-3"
-                                >
-                                    <label className="block text-sm font-medium">
-                                        Post a message
-                                    </label>
-                                    <textarea
-                                        className="w-full rounded-md border px-3 py-2"
-                                        rows={3}
-                                        value={messageForm.data.message}
-                                        onChange={(e) =>
-                                            messageForm.setData(
-                                                'message',
-                                                e.target.value,
-                                            )
-                                        }
-                                        placeholder="Write your message..."
-                                        required
-                                    />
-                                    <div className="flex items-center gap-2">
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={(e) =>
-                                                messageForm.setData(
-                                                    'photo',
-                                                    e.target.files?.[0] ?? null,
-                                                )
-                                            }
-                                        />
-                                        <Button
-                                            type="submit"
-                                            disabled={messageForm.processing}
-                                        >
-                                            Send
-                                        </Button>
-                                    </div>
-                                </form>
-                            </div>
+                            <ProjectChat
+                                projectId={project.id}
+                                initialMessages={project.messages}
+                            />
                         )}
                     </CardContent>
                 </Card>
