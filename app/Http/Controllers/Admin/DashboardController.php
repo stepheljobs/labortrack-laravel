@@ -22,7 +22,7 @@ class DashboardController extends Controller
                 'user' => $m->user?->only(['id','name','email']),
                 'project' => $m->project?->only(['id','name']),
                 'message' => $m->message,
-                'photo_url' => $m->photo_path ? asset('storage/'.$m->photo_path) : null,
+                'photo_url' => $m->photo_path,
             ]);
 
         return Inertia::render('dashboard', [

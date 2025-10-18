@@ -72,7 +72,7 @@ class ProjectAdminController extends Controller
                     'created_at' => optional($m->created_at)->toDateTimeString(),
                     'user' => $m->user?->only(['id','name','email']),
                     'message' => $m->message,
-                    'photo_url' => $m->photo_path ? asset('storage/'.$m->photo_path) : null,
+                    'photo_url' => $m->photo_path,
                 ]),
                 'recent_attendance' => $recentAttendance->map(fn ($log) => [
                     'id' => $log->id,
@@ -82,7 +82,7 @@ class ProjectAdminController extends Controller
                     'type' => $log->type,
                     'latitude' => $log->latitude,
                     'longitude' => $log->longitude,
-                    'photo_url' => $log->photo_path ? asset('storage/'.$log->photo_path) : null,
+                    'photo_url' => $log->photo_path,
                 ]),
             ],
             'supervisors' => $supervisors,
