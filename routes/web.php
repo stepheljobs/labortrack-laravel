@@ -55,6 +55,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/admin/supervisors/{supervisor}', [App\Http\Controllers\Admin\SupervisorController::class, 'update'])->name('supervisors.update');
         Route::delete('/admin/supervisors/{supervisor}', [App\Http\Controllers\Admin\SupervisorController::class, 'destroy'])->name('supervisors.destroy');
         Route::post('/admin/supervisors/{supervisor}/resend-invitation', [App\Http\Controllers\Admin\SupervisorController::class, 'resendInvitation'])->name('supervisors.resend-invitation');
+        Route::post('/admin/supervisors/{supervisor}/approve', [App\Http\Controllers\Admin\SupervisorController::class, 'approve'])->name('supervisors.approve');
     });
 
     // Public invitation acceptance route

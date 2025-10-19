@@ -30,6 +30,7 @@ export function AppSidebar() {
     const projectNavItems: NavItem[] = [
         { title: 'Projects', href: '/projects', icon: Folder },
         { title: 'Employees', href: '/employees', icon: Users },
+        { title: 'Supervisors', href: '/admin/supervisors', icon: Users },
         { title: 'Payroll', href: '/payroll', icon: DollarSign },
         { title: 'Reports', href: '/reports', icon: BookOpen },
     ];

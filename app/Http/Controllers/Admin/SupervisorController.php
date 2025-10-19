@@ -108,6 +108,22 @@ class SupervisorController extends Controller
             ->with('success', 'Invitation resent successfully.');
     }
 
+    public function approve(User $supervisor)
+    {
+        if ($supervisor->invitation_accepted_at) {
+            return redirect()->route('supervisors.index')
+                ->with('error', 'Supervisor is already active.');
+        }
+
+        $supervisor->invitation_accepted_at = now();
+        $supervisor->email_verified_at = now();
+        $supervisor->invitation_token = null; // Clear the invitation token since it's no longer needed
+        $supervisor->save();
+
+        return redirect()->route('supervisors.index')
+            ->with('success', 'Supervisor approved successfully.');
+    }
+
     public function acceptInvitation($token)
     {
         $supervisor = User::where('invitation_token', $token)

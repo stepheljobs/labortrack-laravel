@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
-import { Edit, Mail, Search, Trash2, UserCheck } from 'lucide-react';
+import { Check, Edit, Mail, Search, Trash2, UserCheck } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 type Supervisor = {
@@ -53,6 +53,7 @@ export default function SupervisorIndex() {
 
     const [editingId, setEditingId] = useState<number | null>(null);
     const [deleteId, setDeleteId] = useState<number | null>(null);
+    const [approveId, setApproveId] = useState<number | null>(null);
     const [notice, setNotice] = useState<{
         type: 'success' | 'error';
         text: string;
@@ -176,6 +177,27 @@ export default function SupervisorIndex() {
                         type: 'error',
                         text: 'Failed to resend invitation.',
                     }),
+                preserveScroll: true,
+            },
+        );
+    };
+
+    const handleApprove = (id: number) => {
+        router.post(
+            `/admin/supervisors/${id}/approve`,
+            {},
+            {
+                onSuccess: () =>
+                    setNotice({
+                        type: 'success',
+                        text: 'Supervisor approved successfully.',
+                    }),
+                onError: () =>
+                    setNotice({
+                        type: 'error',
+                        text: 'Failed to approve supervisor.',
+                    }),
+                onFinish: () => setApproveId(null),
                 preserveScroll: true,
             },
         );
@@ -540,18 +562,32 @@ export default function SupervisorIndex() {
                                                                     <Edit className="h-3 w-3" />
                                                                 </Button>
                                                                 {!supervisor.invitation_accepted_at && (
-                                                                    <Button
-                                                                        type="button"
-                                                                        variant="outline"
-                                                                        size="sm"
-                                                                        onClick={() =>
-                                                                            handleResendInvitation(
-                                                                                supervisor.id,
-                                                                            )
-                                                                        }
-                                                                    >
-                                                                        <Mail className="h-3 w-3" />
-                                                                    </Button>
+                                                                    <>
+                                                                        <Button
+                                                                            type="button"
+                                                                            variant="outline"
+                                                                            size="sm"
+                                                                            onClick={() =>
+                                                                                setApproveId(
+                                                                                    supervisor.id,
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            <Check className="h-3 w-3" />
+                                                                        </Button>
+                                                                        <Button
+                                                                            type="button"
+                                                                            variant="outline"
+                                                                            size="sm"
+                                                                            onClick={() =>
+                                                                                handleResendInvitation(
+                                                                                    supervisor.id,
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            <Mail className="h-3 w-3" />
+                                                                        </Button>
+                                                                    </>
                                                                 )}
                                                                 <Button
                                                                     type="button"
@@ -690,6 +726,39 @@ export default function SupervisorIndex() {
                                 }}
                             >
                                 Delete
+                            </Button>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+
+                <Dialog
+                    open={approveId !== null}
+                    onOpenChange={(o) => !o && setApproveId(null)}
+                >
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Approve Supervisor?</DialogTitle>
+                        </DialogHeader>
+                        <p className="text-sm text-muted-foreground">
+                            This will manually set the supervisor's status to
+                            Active (OK!) and they will be able to access the
+                            system immediately.
+                        </p>
+                        <div className="flex justify-end gap-2 pt-2">
+                            <Button
+                                variant="secondary"
+                                onClick={() => setApproveId(null)}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={() => {
+                                    if (approveId) {
+                                        handleApprove(approveId);
+                                    }
+                                }}
+                            >
+                                Approve
                             </Button>
                         </div>
                     </DialogContent>
