@@ -9,7 +9,7 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
-    
+
     // Projects routes (moved from admin)
     Route::get('/projects', [App\Http\Controllers\Admin\ProjectAdminController::class, 'index'])->name('projects.index');
     Route::post('/projects', [App\Http\Controllers\Admin\ProjectAdminController::class, 'store'])->name('projects.store');
@@ -19,7 +19,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/projects/{project}/labors/{labor}', [App\Http\Controllers\Admin\ProjectAdminController::class, 'updateLabor'])->name('projects.labors.update');
     Route::delete('/projects/{project}/labors/{labor}', [App\Http\Controllers\Admin\ProjectAdminController::class, 'destroyLabor'])->name('projects.labors.destroy');
     Route::post('/projects/{project}/messages', [App\Http\Controllers\Admin\ProjectAdminController::class, 'storeMessage'])->name('projects.messages.store');
-    
+
     // Employees routes
     Route::get('/employees', [App\Http\Controllers\Admin\EmployeeController::class, 'index'])->name('employees.index');
     Route::post('/employees', [App\Http\Controllers\Admin\EmployeeController::class, 'store'])->name('employees.store');
@@ -27,11 +27,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/employees/{employee}', [App\Http\Controllers\Admin\EmployeeController::class, 'destroy'])->name('employees.destroy');
     Route::get('/employees/search', [App\Http\Controllers\Admin\EmployeeController::class, 'search'])->name('employees.search');
     Route::post('/projects/{project}/labors/{employee}/assign', [App\Http\Controllers\Admin\EmployeeController::class, 'assignToProject'])->name('projects.labors.assign');
-    
+
     // Reports routes (moved from admin)
     Route::get('/reports', [App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export', [App\Http\Controllers\Admin\ReportController::class, 'export'])->name('reports.export');
-    
+
     // Payroll routes
     Route::get('/payroll', [App\Http\Controllers\Admin\PayrollController::class, 'index'])->name('payroll.index');
     Route::get('/payroll/create', [App\Http\Controllers\Admin\PayrollController::class, 'create'])->name('payroll.create');
@@ -43,16 +43,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/payroll/{payrollRun}/export', [App\Http\Controllers\Admin\PayrollController::class, 'export'])->name('payroll.export');
     Route::get('/payroll/entry/{payrollEntry}/slip', [App\Http\Controllers\Admin\PayrollController::class, 'payrollSlip'])->name('payroll.entry.slip');
     Route::delete('/payroll/{payrollRun}', [App\Http\Controllers\Admin\PayrollController::class, 'destroy'])->name('payroll.destroy');
-    
+
     // Payroll Settings
     Route::get('/payroll/settings', [App\Http\Controllers\Admin\PayrollSettingsController::class, 'index'])->name('payroll.settings.index');
     Route::put('/payroll/settings', [App\Http\Controllers\Admin\PayrollSettingsController::class, 'update'])->name('payroll.settings.update');
+
+    // Supervisors routes (admin only)
+    Route::middleware([App\Http\Middleware\EnsureAdmin::class])->group(function () {
+        Route::get('/admin/supervisors', [App\Http\Controllers\Admin\SupervisorController::class, 'index'])->name('supervisors.index');
+        Route::post('/admin/supervisors', [App\Http\Controllers\Admin\SupervisorController::class, 'store'])->name('supervisors.store');
+        Route::put('/admin/supervisors/{supervisor}', [App\Http\Controllers\Admin\SupervisorController::class, 'update'])->name('supervisors.update');
+        Route::delete('/admin/supervisors/{supervisor}', [App\Http\Controllers\Admin\SupervisorController::class, 'destroy'])->name('supervisors.destroy');
+        Route::post('/admin/supervisors/{supervisor}/resend-invitation', [App\Http\Controllers\Admin\SupervisorController::class, 'resendInvitation'])->name('supervisors.resend-invitation');
+    });
+
+    // Public invitation acceptance route
+    Route::get('/supervisors/accept/{token}', [App\Http\Controllers\Admin\SupervisorController::class, 'acceptInvitation'])->name('supervisors.accept.invitation');
 });
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
 
 // Admin views (Blade) - require auth + admin
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\ProjectAdminController;
-use App\Http\Controllers\Admin\ReportController;
