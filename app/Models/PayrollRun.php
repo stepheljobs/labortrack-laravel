@@ -24,6 +24,7 @@ class PayrollRun extends Model
         'approved_at',
         'approved_by',
         'notes',
+        'project_id',
     ];
 
     protected $casts = [
@@ -40,6 +41,11 @@ class PayrollRun extends Model
     public function approvedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
     }
 
     public function payrollEntries(): HasMany

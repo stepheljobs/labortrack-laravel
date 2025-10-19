@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Labor;
 use App\Models\PayrollEntry;
 use App\Models\PayrollRun;
+use App\Models\Project;
 use App\Services\PayrollCalculationService;
 use App\Services\PayrollPeriodService;
 use Illuminate\Http\Request;
@@ -42,6 +43,10 @@ class PayrollController extends Controller
 
         if ($request->filled('date_to')) {
             $query->where('end_date', '<=', $request->date('date_to'));
+        }
+
+        if ($request->filled('project_id')) {
+            $query->where('project_id', $request->get('project_id'));
         }
 
         $payrollRuns = $query->paginate(15);
@@ -81,7 +86,9 @@ class PayrollController extends Controller
                 'status' => $request->get('status'),
                 'date_from' => $request->get('date_from'),
                 'date_to' => $request->get('date_to'),
+                'project_id' => $request->get('project_id'),
             ],
+            'projects' => Project::orderBy('name')->select('id', 'name')->get(),
         ]);
     }
 
@@ -106,6 +113,7 @@ class PayrollController extends Controller
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
             'period_config' => ['nullable', 'array'],
             'notes' => ['nullable', 'string'],
+            'project_id' => ['nullable', 'integer', 'exists:projects,id'],
         ]);
 
         $periodConfig = $this->periodService->validatePeriodConfig(
@@ -119,6 +127,7 @@ class PayrollController extends Controller
             'end_date' => $validated['end_date'],
             'period_config' => $periodConfig,
             'notes' => $validated['notes'] ?? null,
+            'project_id' => $validated['project_id'] ?? null,
         ]);
 
         return redirect()->route('payroll.show', $payrollRun)
@@ -189,12 +198,19 @@ class PayrollController extends Controller
             $payrollRun->payrollEntries()->delete();
 
             // Get all labors with attendance in the period
-            $labors = Labor::whereHas('attendanceLogs', function ($query) use ($payrollRun) {
+            $laborQuery = Labor::whereHas('attendanceLogs', function ($query) use ($payrollRun) {
                 $query->whereBetween('timestamp', [
                     $payrollRun->start_date->startOfDay(),
                     $payrollRun->end_date->endOfDay(),
                 ]);
-            })->get();
+                
+                // Filter by project if specified
+                if ($payrollRun->project_id) {
+                    $query->where('project_id', $payrollRun->project_id);
+                }
+            });
+
+            $labors = $laborQuery->get();
 
             $totalRegularHours = 0;
             $totalOvertimeHours = 0;
@@ -214,6 +230,9 @@ class PayrollController extends Controller
                         $payrollRun->end_date->endOfDay(),
                     ])
                     ->whereNotNull('project_id')
+                    ->when($payrollRun->project_id, function ($query) use ($payrollRun) {
+                        $query->where('project_id', $payrollRun->project_id);
+                    })
                     ->selectRaw('project_id, COUNT(*) as count')
                     ->groupBy('project_id')
                     ->orderByRaw('count DESC')

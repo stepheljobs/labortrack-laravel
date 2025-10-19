@@ -59,6 +59,7 @@ interface Filters {
     status?: string;
     date_from?: string;
     date_to?: string;
+    project_id?: string;
 }
 
 interface PayrollIndexProps {
@@ -72,11 +73,13 @@ interface PayrollIndexProps {
         };
     };
     filters: Filters;
+    projects: Array<{ id: number; name: string }>;
 }
 
 const PayrollIndex: React.FC<PayrollIndexProps> = ({
     payrollRuns,
     filters,
+    projects,
 }) => {
     // Ensure payrollRuns.data exists and is an array
     const payrollRunsData = payrollRuns?.data || [];
@@ -97,11 +100,12 @@ const PayrollIndex: React.FC<PayrollIndexProps> = ({
         end_date: '',
         period_config: {},
         notes: '',
+        project_id: 'all',
     });
 
     const handleFilterChange = (key: string, value: string) => {
         const params = new URLSearchParams(window.location.search);
-        if (value) {
+        if (value && value !== 'all') {
             params.set(key, value);
         } else {
             params.delete(key);
@@ -115,7 +119,15 @@ const PayrollIndex: React.FC<PayrollIndexProps> = ({
 
     const handleCreatePayroll = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        router.post('/payroll', formData, {
+
+        // Convert 'all' to null for backend
+        const submitData = {
+            ...formData,
+            project_id:
+                formData.project_id === 'all' ? null : formData.project_id,
+        };
+
+        router.post('/payroll', submitData, {
             onSuccess: () => {
                 setIsCreateDialogOpen(false);
                 setFormData({
@@ -124,6 +136,7 @@ const PayrollIndex: React.FC<PayrollIndexProps> = ({
                     end_date: '',
                     period_config: {},
                     notes: '',
+                    project_id: 'all',
                 });
                 toast.success('Payroll period created successfully');
             },
@@ -335,6 +348,38 @@ const PayrollIndex: React.FC<PayrollIndexProps> = ({
                                 </div>
 
                                 <div>
+                                    <Label htmlFor="project_id">
+                                        Project (Optional)
+                                    </Label>
+                                    <Select
+                                        value={formData.project_id}
+                                        onValueChange={(value) =>
+                                            setFormData((prev) => ({
+                                                ...prev,
+                                                project_id: value,
+                                            }))
+                                        }
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="All Projects" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">
+                                                All Projects
+                                            </SelectItem>
+                                            {projects?.map((project) => (
+                                                <SelectItem
+                                                    key={project.id}
+                                                    value={project.id.toString()}
+                                                >
+                                                    {project.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div>
                                     <Label htmlFor="notes">Notes</Label>
                                     <Textarea
                                         id="notes"
@@ -374,7 +419,7 @@ const PayrollIndex: React.FC<PayrollIndexProps> = ({
                         <CardTitle>Filters</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
                             <div>
                                 <Label htmlFor="period_type_filter">
                                     Period Type
@@ -461,6 +506,35 @@ const PayrollIndex: React.FC<PayrollIndexProps> = ({
                                         )
                                     }
                                 />
+                            </div>
+
+                            <div>
+                                <Label htmlFor="project_id_filter">
+                                    Project
+                                </Label>
+                                <Select
+                                    value={safeFilters.project_id || undefined}
+                                    onValueChange={(value) =>
+                                        handleFilterChange('project_id', value)
+                                    }
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="All projects" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">
+                                            All Projects
+                                        </SelectItem>
+                                        {projects?.map((project) => (
+                                            <SelectItem
+                                                key={project.id}
+                                                value={project.id.toString()}
+                                            >
+                                                {project.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
                     </CardContent>
