@@ -9,6 +9,7 @@ use App\Models\ProjectMessage;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
@@ -17,8 +18,8 @@ class DatabaseSeeder extends Seeder
     {
         // 1) Core accounts
         $admin = User::firstOrCreate(
-            ['email' => 'admin@example.com'],
-            ['name' => 'Admin', 'password' => 'password', 'role' => 'admin']
+            ['email' => 'allan@alchedy.com'],
+            ['name' => 'Allan', 'password' => Hash::make('goAlchedy123!'), 'role' => 'admin']
         );
 
         // Named supervisors for realism
