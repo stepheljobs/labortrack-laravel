@@ -19,6 +19,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/projects/{project}/labors/{labor}', [App\Http\Controllers\Admin\ProjectAdminController::class, 'updateLabor'])->name('projects.labors.update');
     Route::delete('/projects/{project}/labors/{labor}', [App\Http\Controllers\Admin\ProjectAdminController::class, 'destroyLabor'])->name('projects.labors.destroy');
     Route::post('/projects/{project}/messages', [App\Http\Controllers\Admin\ProjectAdminController::class, 'storeMessage'])->name('projects.messages.store');
+    Route::put('/projects/{project}/attendance/{attendanceLog}', [App\Http\Controllers\Admin\ProjectAdminController::class, 'updateAttendance'])->name('projects.attendance.update');
 
     // Employees routes
     Route::get('/employees', [App\Http\Controllers\Admin\EmployeeController::class, 'index'])->name('employees.index');

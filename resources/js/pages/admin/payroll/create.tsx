@@ -87,23 +87,24 @@ const PayrollCreate: React.FC<PayrollCreateProps> = ({
         let endDate = new Date();
 
         switch (data.period_type) {
-            case 'weekly':
-                const weekStartDay = configFields.week_start_day || 'monday';
+            case 'weekly': {
                 const dayOfWeek = today.getDay();
                 const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
                 startDate.setDate(today.getDate() - daysToMonday);
                 endDate = new Date(startDate);
                 endDate.setDate(startDate.getDate() + 6);
                 break;
+            }
 
-            case 'bi_weekly':
+            case 'bi_weekly': {
                 // Simple implementation: start from beginning of month and add 2 weeks
                 startDate = new Date(today.getFullYear(), today.getMonth(), 1);
                 endDate = new Date(startDate);
                 endDate.setDate(startDate.getDate() + 13);
                 break;
+            }
 
-            case 'monthly':
+            case 'monthly': {
                 const dayOfMonth = configFields.day_of_month || 1;
                 startDate = new Date(
                     today.getFullYear(),
@@ -119,13 +120,15 @@ const PayrollCreate: React.FC<PayrollCreateProps> = ({
                     0,
                 );
                 break;
+            }
 
-            case 'custom':
+            case 'custom': {
                 const intervalDays = configFields.interval_days || 7;
                 startDate = new Date(today);
                 endDate = new Date(today);
                 endDate.setDate(today.getDate() + intervalDays - 1);
                 break;
+            }
         }
 
         setData('start_date', startDate.toISOString().split('T')[0]);

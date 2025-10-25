@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Requests\AttendanceStoreRequest;
+use App\Http\Requests\AttendanceUpdateRequest;
 use App\Http\Resources\AttendanceLogResource;
 use App\Models\AttendanceLog;
 use App\Models\Labor;
@@ -68,6 +69,25 @@ class AttendanceController extends ApiController
                 'total' => $logs->total(),
             ],
         ]);
+    }
+
+    public function update(AttendanceUpdateRequest $request, AttendanceLog $attendanceLog)
+    {
+        $data = $request->validated();
+
+        // Validate that the user can edit this attendance log
+        // This will be enhanced with proper authorization logic
+
+        $attendanceLog->update([
+            'timestamp' => Carbon::parse($data['timestamp']),
+            'edit_reason' => $data['edit_reason'],
+            'edited_by' => $request->user()->id,
+            'edited_at' => now(),
+        ]);
+
+        $attendanceLog->load(['labor', 'supervisor', 'editor']);
+
+        return $this->success(new AttendanceLogResource($attendanceLog), 'Attendance updated successfully');
     }
 
     public function today(Request $request)

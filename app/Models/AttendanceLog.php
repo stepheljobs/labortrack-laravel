@@ -22,10 +22,14 @@ class AttendanceLog extends Model
         'longitude',
         'location_address',
         'timestamp',
+        'edit_reason',
+        'edited_by',
+        'edited_at',
     ];
 
     protected $casts = [
         'timestamp' => 'datetime',
+        'edited_at' => 'datetime',
         'latitude' => 'float',
         'longitude' => 'float',
         'type' => 'string',
@@ -44,5 +48,10 @@ class AttendanceLog extends Model
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function editor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'edited_by');
     }
 }

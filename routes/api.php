@@ -26,6 +26,7 @@ Route::prefix('')->group(function () {
         Route::post('/attendance/log', [AttendanceController::class, 'store']);
         Route::get('/projects/{project}/attendance', [AttendanceController::class, 'projectLogs']);
         Route::get('/attendance/today', [AttendanceController::class, 'today']);
+        Route::put('/attendance/{attendanceLog}', [AttendanceController::class, 'update']);
 
         // Messages
         Route::get('/projects/{project}/messages', [MessageController::class, 'index']);

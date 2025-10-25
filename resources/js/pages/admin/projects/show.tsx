@@ -1,3 +1,4 @@
+import AttendanceEditModal from '@/components/attendance-edit-modal';
 import MultiSelectChips from '@/components/multi-select-chips';
 import ProjectChat from '@/components/project-chat';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -43,6 +44,10 @@ type Attendance = {
     latitude: number;
     longitude: number;
     photo_url?: string | null;
+    edit_reason?: string | null;
+    edited_by?: number | null;
+    edited_at?: string | null;
+    editor?: { id: number; name: string } | null;
 };
 
 export default function AdminProjectShow({
@@ -91,6 +96,8 @@ export default function AdminProjectShow({
     const [employeeSearch, setEmployeeSearch] = useState('');
     const [searchResults, setSearchResults] = useState<Labor[]>([]);
     const [isSearching, setIsSearching] = useState(false);
+    const [editingAttendance, setEditingAttendance] =
+        useState<Attendance | null>(null);
 
     useEffect(() => {
         if (!notice) return;
@@ -769,6 +776,9 @@ export default function AdminProjectShow({
                                                 <th className="px-3 py-2 text-left">
                                                     Photo
                                                 </th>
+                                                <th className="px-3 py-2 text-left">
+                                                    Actions
+                                                </th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -777,7 +787,7 @@ export default function AdminProjectShow({
                                                 <tr>
                                                     <td
                                                         className="px-3 py-2 text-muted-foreground"
-                                                        colSpan={6}
+                                                        colSpan={7}
                                                     >
                                                         No recent logs.
                                                     </td>
@@ -790,7 +800,14 @@ export default function AdminProjectShow({
                                                         className="border-t"
                                                     >
                                                         <td className="px-3 py-2">
-                                                            {log.timestamp}
+                                                            <div>
+                                                                {log.timestamp}
+                                                                {log.edited_at && (
+                                                                    <div className="text-xs font-medium text-orange-600">
+                                                                        Edited
+                                                                    </div>
+                                                                )}
+                                                            </div>
                                                         </td>
                                                         <td className="px-3 py-2">
                                                             {log.labor?.name}
@@ -827,6 +844,32 @@ export default function AdminProjectShow({
                                                             ) : (
                                                                 ''
                                                             )}
+                                                        </td>
+                                                        <td className="px-3 py-2">
+                                                            <div className="space-y-1">
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    onClick={() =>
+                                                                        setEditingAttendance(
+                                                                            log,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    Edit
+                                                                </Button>
+                                                                {log.edited_at && (
+                                                                    <div className="text-xs text-muted-foreground">
+                                                                        by{' '}
+                                                                        {
+                                                                            log
+                                                                                .editor
+                                                                                ?.name
+                                                                        }
+                                                                    </div>
+                                                                )}
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 ),
@@ -914,6 +957,15 @@ export default function AdminProjectShow({
                         )}
                     </DialogContent>
                 </Dialog>
+
+                {editingAttendance && (
+                    <AttendanceEditModal
+                        isOpen={true}
+                        onClose={() => setEditingAttendance(null)}
+                        attendanceLog={editingAttendance}
+                        projectId={project.id}
+                    />
+                )}
             </div>
             {notice && (
                 <div className="fixed right-4 bottom-4 z-50">

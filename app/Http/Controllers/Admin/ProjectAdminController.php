@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Requests\AttendanceUpdateRequest;
 use App\Http\Requests\LaborStoreRequest;
+use App\Models\AttendanceLog;
 use App\Models\Labor;
 use App\Models\Project;
 use App\Models\ProjectMessage;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 
 class ProjectAdminController extends Controller
@@ -16,6 +19,7 @@ class ProjectAdminController extends Controller
     public function index()
     {
         $projects = Project::latest()->paginate(20);
+
         return Inertia::render('admin/projects/index', [
             'projects' => [
                 'data' => $projects->map(fn ($p) => [
@@ -44,15 +48,17 @@ class ProjectAdminController extends Controller
         ]);
         $data['created_by'] = $request->user()->id;
         $project = Project::create($data);
+
         return redirect()->route('projects.show', $project)->with('status', 'Project created');
     }
 
     public function show(Project $project)
     {
         $project->load(['labors', 'messages.user', 'supervisors']);
-        $recentAttendance = $project->attendanceLogs()->with(['labor','supervisor'])
+        $recentAttendance = $project->attendanceLogs()->with(['labor', 'supervisor', 'editor'])
             ->latest('timestamp')->limit(20)->get();
-        $supervisors = User::where('role', 'supervisor')->orderBy('name')->get(['id','name','email']);
+        $supervisors = User::where('role', 'supervisor')->orderBy('name')->get(['id', 'name', 'email']);
+
         return Inertia::render('admin/projects/show', [
             'project' => [
                 'id' => $project->id,
@@ -70,19 +76,23 @@ class ProjectAdminController extends Controller
                 'messages' => $project->messages->map(fn ($m) => [
                     'id' => $m->id,
                     'created_at' => optional($m->created_at)->toDateTimeString(),
-                    'user' => $m->user?->only(['id','name','email']),
+                    'user' => $m->user?->only(['id', 'name', 'email']),
                     'message' => $m->message,
                     'photo_url' => $m->photo_path,
                 ]),
                 'recent_attendance' => $recentAttendance->map(fn ($log) => [
                     'id' => $log->id,
                     'timestamp' => optional($log->timestamp)->toDateTimeString(),
-                    'labor' => $log->labor?->only(['id','name']),
-                    'supervisor' => $log->supervisor?->only(['id','name']),
+                    'labor' => $log->labor?->only(['id', 'name']),
+                    'supervisor' => $log->supervisor?->only(['id', 'name']),
                     'type' => $log->type,
                     'latitude' => $log->latitude,
                     'longitude' => $log->longitude,
                     'photo_url' => $log->photo_path,
+                    'edit_reason' => $log->edit_reason,
+                    'edited_by' => $log->edited_by,
+                    'edited_at' => optional($log->edited_at)->toDateTimeString(),
+                    'editor' => $log->editor?->only(['id', 'name']),
                 ]),
             ],
             'supervisors' => $supervisors,
@@ -92,6 +102,7 @@ class ProjectAdminController extends Controller
     public function storeLabor(LaborStoreRequest $request, Project $project)
     {
         $project->labors()->create($request->validated());
+
         return back()->with('status', 'Labor created');
     }
 
@@ -105,6 +116,7 @@ class ProjectAdminController extends Controller
             'daily_rate' => ['nullable', 'numeric', 'min:0'],
         ]);
         $labor->update($data);
+
         return back()->with('status', 'Labor updated');
     }
 
@@ -112,6 +124,7 @@ class ProjectAdminController extends Controller
     {
         abort_unless($labor->project_id === $project->id, 404);
         $labor->delete();
+
         return back()->with('status', 'Labor deleted');
     }
 
@@ -127,11 +140,11 @@ class ProjectAdminController extends Controller
         if (isset($data['user_id'])) {
             $ids[] = $data['user_id'];
         }
-        if (!empty($data['user_ids'])) {
+        if (! empty($data['user_ids'])) {
             $ids = array_merge($ids, $data['user_ids']);
         }
 
-        if (!empty($ids)) {
+        if (! empty($ids)) {
             if ($request->has('user_ids')) {
                 // Replace current assignments with the selected list
                 $project->supervisors()->sync($ids);
@@ -164,5 +177,22 @@ class ProjectAdminController extends Controller
         ProjectMessage::create($payload);
 
         return back()->with('status', 'Message posted');
+    }
+
+    public function updateAttendance(AttendanceUpdateRequest $request, Project $project, AttendanceLog $attendanceLog)
+    {
+        // Ensure the attendance log belongs to the project
+        abort_unless($attendanceLog->project_id === $project->id, 404);
+
+        $data = $request->validated();
+
+        $attendanceLog->update([
+            'timestamp' => Carbon::parse($data['timestamp']),
+            'edit_reason' => $data['edit_reason'],
+            'edited_by' => $request->user()->id,
+            'edited_at' => now(),
+        ]);
+
+        return back()->with('status', 'Attendance updated successfully');
     }
 }
