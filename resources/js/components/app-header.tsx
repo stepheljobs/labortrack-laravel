@@ -36,14 +36,6 @@ import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-react';
 import AppLogo from './app-logo';
 import AppLogoIcon from './app-logo-icon';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-];
-
 const rightNavItems: NavItem[] = [
     {
         title: 'Repository',
@@ -66,8 +58,18 @@ interface AppHeaderProps {
 
 export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
     const page = usePage<SharedData>();
-    const { auth } = page.props;
+    const { auth, currentCompany } = page.props;
     const getInitials = useInitials();
+
+    const mainNavItems: NavItem[] = [
+        {
+            title: 'Dashboard',
+            href: currentCompany?.subdomain
+                ? dashboard(currentCompany.subdomain).url
+                : '#',
+            icon: LayoutGrid,
+        },
+    ];
     return (
         <>
             <div className="border-b border-sidebar-border/80">
@@ -145,7 +147,11 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                     </div>
 
                     <Link
-                        href={dashboard()}
+                        href={
+                            currentCompany?.subdomain
+                                ? dashboard(currentCompany.subdomain).url
+                                : '#'
+                        }
                         prefetch
                         className="flex items-center space-x-2"
                     >

@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Company;
 use App\Models\Labor;
 use App\Models\Project;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -21,6 +22,7 @@ class LaborFactory extends Factory
             'designation' => $this->faker->randomElement(['Worker', 'Mason', 'Carpenter', 'Electrician', 'Plumber']),
             'daily_rate' => $this->faker->optional()->randomFloat(2, 20, 300),
             'project_id' => Project::query()->inRandomOrder()->value('id') ?? Project::factory(),
+            'company_id' => Company::factory(),
         ];
     }
 }

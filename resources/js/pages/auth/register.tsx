@@ -1,6 +1,7 @@
 import RegisteredUserController from '@/actions/App/Http/Controllers/Auth/RegisteredUserController';
 import { login } from '@/routes';
-import { Form, Head } from '@inertiajs/react';
+import { type SharedData } from '@/types';
+import { Form, Head, usePage } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 
 import InputError from '@/components/input-error';
@@ -11,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
 
 export default function Register() {
+    const { currentCompany } = usePage<SharedData>().props;
     return (
         <AuthLayout
             title="Create an account"
@@ -18,7 +20,11 @@ export default function Register() {
         >
             <Head title="Register" />
             <Form
-                {...RegisteredUserController.store.form()}
+                {...(currentCompany?.subdomain
+                    ? RegisteredUserController.store.form(
+                          currentCompany.subdomain,
+                      )
+                    : {})}
                 resetOnSuccess={['password', 'password_confirmation']}
                 disableWhileProcessing
                 className="flex flex-col gap-6"
@@ -105,7 +111,7 @@ export default function Register() {
 
                         <div className="text-center text-sm text-muted-foreground">
                             Already have an account?{' '}
-                            <TextLink href={login()} tabIndex={6}>
+                            <TextLink href={login().url} tabIndex={6}>
                                 Log in
                             </TextLink>
                         </div>

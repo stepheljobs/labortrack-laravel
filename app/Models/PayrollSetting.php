@@ -2,18 +2,21 @@
 
 namespace App\Models;
 
+use App\Traits\Multitenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PayrollSetting extends Model
 {
-    use HasFactory;
+    use HasFactory, Multitenant;
 
     protected $fillable = [
         'key',
         'value',
         'type',
         'description',
+        'company_id',
     ];
 
     protected $casts = [
@@ -24,8 +27,8 @@ class PayrollSetting extends Model
     public static function getValue(string $key, mixed $default = null): mixed
     {
         $setting = static::where('key', $key)->first();
-        
-        if (!$setting) {
+
+        if (! $setting) {
             return $default;
         }
 
@@ -37,6 +40,11 @@ class PayrollSetting extends Model
             'array' => json_decode($setting->value, true) ?? $default,
             default => $setting->value,
         };
+    }
+
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
     }
 
     public static function setValue(string $key, mixed $value, string $type = 'string', ?string $description = null): self
@@ -105,7 +113,7 @@ class PayrollSetting extends Model
 
         // Seed default settings
         static::created(function ($model) {
-            if ($model->key === 'overtime_multiplier' && !$model->value) {
+            if ($model->key === 'overtime_multiplier' && ! $model->value) {
                 $model->value = '1.5';
                 $model->save();
             }

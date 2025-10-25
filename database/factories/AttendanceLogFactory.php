@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\AttendanceLog;
+use App\Models\Company;
 use App\Models\Labor;
 use App\Models\Project;
 use App\Models\User;
@@ -43,6 +44,7 @@ class AttendanceLogFactory extends Factory
             'longitude' => $lng,
             'location_address' => $this->faker->optional()->address(),
             'timestamp' => $timestamp,
+            'company_id' => Company::factory(),
         ];
     }
 }

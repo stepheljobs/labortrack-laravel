@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Company;
 use App\Models\Project;
 use App\Models\ProjectMessage;
 use App\Models\User;
@@ -26,7 +27,7 @@ class ProjectMessageFactory extends Factory
             'user_id' => $userId,
             'message' => $this->faker->sentence(12),
             'photo_path' => null,
+            'company_id' => Company::factory(),
         ];
     }
 }
-

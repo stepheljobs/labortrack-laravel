@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\Multitenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Project extends Model
 {
-    use HasFactory;
+    use HasFactory, Multitenant;
 
     protected $fillable = [
         'name',
@@ -18,6 +19,7 @@ class Project extends Model
         'location_address',
         'geofence_radius',
         'created_by',
+        'company_id',
     ];
 
     public function creator(): BelongsTo
@@ -44,5 +46,9 @@ class Project extends Model
     {
         return $this->hasMany(ProjectMessage::class);
     }
-}
 
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
+}

@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -18,7 +18,7 @@ return new class extends Migration
             VALUES ('Default Company', 'default', 'default@labortrack.com', 'basic', 100, 100.00, true, NOW(), NOW())
             ON CONFLICT (subdomain) DO NOTHING
         ");
-        
+
         // Get the default company ID
         $defaultCompany = DB::table('companies')->where('subdomain', 'default')->first();
         $defaultCompanyId = $defaultCompany->id;
@@ -26,13 +26,13 @@ return new class extends Migration
         // Update all existing records to belong to the default company
         $tables = [
             'users',
-            'projects', 
+            'projects',
             'labors',
             'attendance_logs',
             'project_messages',
             'payroll_runs',
             'payroll_entries',
-            'payroll_settings'
+            'payroll_settings',
         ];
 
         foreach ($tables as $table) {
@@ -83,13 +83,13 @@ return new class extends Migration
         // Make company_id nullable again
         $tables = [
             'users',
-            'projects', 
+            'projects',
             'labors',
             'attendance_logs',
             'project_messages',
             'payroll_runs',
             'payroll_entries',
-            'payroll_settings'
+            'payroll_settings',
         ];
 
         foreach ($tables as $table) {

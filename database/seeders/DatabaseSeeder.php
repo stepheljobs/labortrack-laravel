@@ -15,10 +15,14 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->call([
+            SuperAdminSeeder::class,
+        ]);
         // 1) Core accounts
-        $admin = User::firstOrCreate(
+        $defaultCompany = \App\Models\Company::withoutGlobalScopes()->where('subdomain', 'default')->first();
+        $admin = User::withoutGlobalScopes()->firstOrCreate(
             ['email' => 'admin@example.com'],
-            ['name' => 'Admin', 'password' => 'password', 'role' => 'admin']
+            ['name' => 'Admin', 'password' => 'password', 'role' => 'admin', 'company_id' => $defaultCompany->id]
         );
 
         // Named supervisors for realism
@@ -32,9 +36,9 @@ class DatabaseSeeder extends Seeder
         $supervisors = collect();
         foreach ($namedSupervisors as $sup) {
             $supervisors->push(
-                User::firstOrCreate(
+                User::withoutGlobalScopes()->firstOrCreate(
                     ['email' => $sup['email']],
-                    ['name' => $sup['name'], 'password' => 'password', 'role' => 'supervisor']
+                    ['name' => $sup['name'], 'password' => 'password', 'role' => 'supervisor', 'company_id' => $defaultCompany->id]
                 )
             );
         }
@@ -67,13 +71,14 @@ class DatabaseSeeder extends Seeder
         $projects = collect();
         foreach ($projectData as $data) {
             $projects->push(
-                Project::firstOrCreate(
+                Project::withoutGlobalScopes()->firstOrCreate(
                     ['name' => $data['name']],
                     [
                         'description' => $data['description'],
                         'location_address' => $data['location_address'],
                         'geofence_radius' => $data['geofence_radius'],
                         'created_by' => $admin->id,
+                        'company_id' => $defaultCompany->id,
                     ]
                 )
             );
@@ -125,6 +130,7 @@ class DatabaseSeeder extends Seeder
                     'contact_number' => '555-' . str_pad((string) random_int(1000, 9999), 4, '0'),
                     'designation' => $designation,
                     'daily_rate' => $daily,
+                    'company_id' => $defaultCompany->id,
                 ]);
                 $allLabors->push($labor);
             }
@@ -142,6 +148,7 @@ class DatabaseSeeder extends Seeder
                     'project_id' => $project->id,
                     'user_id' => $project->supervisors()->inRandomOrder()->value('users.id') ?? $supervisors->random()->id,
                     'message' => $m,
+                    'company_id' => $defaultCompany->id,
                 ]);
             }
         }
@@ -199,6 +206,7 @@ class DatabaseSeeder extends Seeder
                     'longitude' => $lngIn,
                     'location_address' => $project->location_address,
                     'photo_path' => null,
+                    'company_id' => $defaultCompany->id,
                 ]);
 
                 AttendanceLog::create([
@@ -211,6 +219,7 @@ class DatabaseSeeder extends Seeder
                     'longitude' => $lngOut,
                     'location_address' => $project->location_address,
                     'photo_path' => null,
+                    'company_id' => $defaultCompany->id,
                 ]);
             }
         }

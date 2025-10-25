@@ -24,7 +24,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->timestamp('trial_ends_at')->nullable();
             $table->timestamps();
-            
+
             $table->index(['subdomain']);
             $table->index(['is_active']);
         });

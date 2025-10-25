@@ -33,6 +33,14 @@ class LoginRequest extends ApiRequest
             ]);
         }
 
+        // Validate user belongs to current company (for subdomain login)
+        $currentCompany = session('current_company');
+        if ($currentCompany && ! $user->isSuperAdmin() && $user->company_id !== $currentCompany->id) {
+            throw ValidationException::withMessages([
+                'email' => ['You do not have access to this company.'],
+            ]);
+        }
+
         return $user;
     }
 }

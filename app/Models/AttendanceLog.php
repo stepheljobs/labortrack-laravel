@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\Multitenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AttendanceLog extends Model
 {
-    use HasFactory;
+    use HasFactory, Multitenant;
 
     public $timestamps = true;
 
@@ -22,6 +23,7 @@ class AttendanceLog extends Model
         'longitude',
         'location_address',
         'timestamp',
+        'company_id',
     ];
 
     protected $casts = [
@@ -44,5 +46,10 @@ class AttendanceLog extends Model
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
     }
 }

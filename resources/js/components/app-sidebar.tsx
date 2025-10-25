@@ -11,22 +11,25 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
-import { BookOpen, DollarSign, Folder, LayoutGrid, Users } from 'lucide-react';
+import { type NavItem, type SharedData } from '@/types';
+import { Link, usePage } from '@inertiajs/react';
+import { BookOpen, DollarSign, Folder, Users } from 'lucide-react';
 import AppLogo from './app-logo';
-
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-];
 
 const footerNavItems: NavItem[] = [];
 
 export function AppSidebar() {
+    const { currentCompany } = usePage<SharedData>().props;
+
+    const mainNavItems: NavItem[] = [
+        {
+            title: 'Dashboard',
+            href: currentCompany?.subdomain
+                ? dashboard(currentCompany.subdomain).url
+                : '#',
+            icon: undefined, // Will be handled by NavMain
+        },
+    ];
     const projectNavItems: NavItem[] = [
         { title: 'Projects', href: '/projects', icon: Folder },
         { title: 'Employees', href: '/employees', icon: Users },
@@ -40,7 +43,15 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboard()} prefetch>
+                            <Link
+                                href={
+                                    currentCompany?.subdomain
+                                        ? dashboard(currentCompany.subdomain)
+                                              .url
+                                        : '#'
+                                }
+                                prefetch
+                            >
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>

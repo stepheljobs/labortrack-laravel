@@ -27,6 +27,12 @@ export interface SharedData {
     quote: { message: string; author: string };
     auth: Auth;
     sidebarOpen: boolean;
+    currentCompany?: {
+        id: number;
+        name: string;
+        subdomain: string;
+        [key: string]: unknown;
+    };
     [key: string]: unknown;
 }
 

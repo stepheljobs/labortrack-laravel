@@ -1,15 +1,8 @@
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
-import { type BreadcrumbItem } from '@/types';
-import { Head, Link } from '@inertiajs/react';
+import { type BreadcrumbItem, type SharedData } from '@/types';
+import { Head, Link, usePage } from '@inertiajs/react';
 import * as React from 'react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard().url,
-    },
-];
 
 interface DashboardProps {
     projectsCount: number;
@@ -29,6 +22,17 @@ export default function Dashboard({
     todayAttendance,
     recentMessages,
 }: DashboardProps) {
+    const { currentCompany } = usePage<SharedData>().props;
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: 'Dashboard',
+            href: currentCompany?.subdomain
+                ? dashboard(currentCompany.subdomain).url
+                : '#',
+        },
+    ];
+
     const [selectedImage, setSelectedImage] = React.useState<string | null>(
         null,
     );

@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\Multitenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PayrollEntry extends Model
 {
-    use HasFactory;
+    use HasFactory, Multitenant;
 
     protected $fillable = [
         'payroll_run_id',
@@ -24,6 +25,7 @@ class PayrollEntry extends Model
         'attendance_data',
         'days_worked',
         'notes',
+        'company_id',
     ];
 
     protected $casts = [
@@ -71,6 +73,7 @@ class PayrollEntry extends Model
     public function getOvertimePercentageAttribute(): float
     {
         $totalHours = $this->total_hours;
+
         return $totalHours > 0 ? round(($this->overtime_hours / $totalHours) * 100, 2) : 0;
     }
 
@@ -99,11 +102,11 @@ class PayrollEntry extends Model
         if ($minHours !== null) {
             $query->where('total_hours', '>=', $minHours);
         }
-        
+
         if ($maxHours !== null) {
             $query->where('total_hours', '<=', $maxHours);
         }
-        
+
         return $query;
     }
 
@@ -112,11 +115,11 @@ class PayrollEntry extends Model
         if ($minPay !== null) {
             $query->where('total_pay', '>=', $minPay);
         }
-        
+
         if ($maxPay !== null) {
             $query->where('total_pay', '<=', $maxPay);
         }
-        
+
         return $query;
     }
 
@@ -158,5 +161,10 @@ class PayrollEntry extends Model
     public function getFormattedOvertimeRateAttribute(): string
     {
         return number_format($this->overtime_rate, 2);
+    }
+
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
     }
 }

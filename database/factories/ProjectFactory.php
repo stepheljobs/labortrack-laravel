@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Company;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -22,7 +23,7 @@ class ProjectFactory extends Factory
             'geofence_radius' => $this->faker->optional()->randomFloat(2, 50, 300),
             'created_by' => User::query()->where('role', 'admin')->inRandomOrder()->value('id')
                 ?? User::factory()->create(['role' => 'admin'])->id,
+            'company_id' => Company::factory(),
         ];
     }
 }
-

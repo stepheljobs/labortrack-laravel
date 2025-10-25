@@ -3,7 +3,9 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Traits\Multitenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -14,7 +16,7 @@ use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable, TwoFactorAuthenticatable;
+    use HasApiTokens, HasFactory, Multitenant, Notifiable, TwoFactorAuthenticatable;
 
     /**
      * The attributes that are mass assignable.
@@ -26,6 +28,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'company_id',
         'invitation_token',
         'invitation_accepted_at',
     ];
@@ -50,6 +53,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'invitation_accepted_at' => 'datetime',
         ];
     }
 
@@ -75,5 +79,47 @@ class User extends Authenticatable
     public function supervisedAttendanceLogs(): HasMany
     {
         return $this->hasMany(AttendanceLog::class, 'supervisor_id');
+    }
+
+    /**
+     * Company this user belongs to.
+     */
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
+
+    /**
+     * Check if user is a super admin.
+     */
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'super_admin';
+    }
+
+    /**
+     * Check if user belongs to current company session.
+     */
+    public function belongsToCurrentCompany(): bool
+    {
+        $currentCompany = session('current_company');
+
+        return $currentCompany && $this->company_id === $currentCompany->id;
+    }
+
+    /**
+     * Check if user is an admin (company admin or super admin).
+     */
+    public function isAdmin(): bool
+    {
+        return in_array($this->role, ['admin', 'super_admin']);
+    }
+
+    /**
+     * Check if user can manage company settings.
+     */
+    public function canManageCompany(): bool
+    {
+        return $this->isAdmin();
     }
 }

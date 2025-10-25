@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\Multitenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PayrollRun extends Model
 {
-    use HasFactory;
+    use HasFactory, Multitenant;
 
     protected $fillable = [
         'period_type',
@@ -25,6 +26,7 @@ class PayrollRun extends Model
         'approved_by',
         'notes',
         'project_id',
+        'company_id',
     ];
 
     protected $casts = [
@@ -82,17 +84,17 @@ class PayrollRun extends Model
     {
         return $query->where(function ($q) use ($startDate, $endDate) {
             $q->whereBetween('start_date', [$startDate, $endDate])
-              ->orWhereBetween('end_date', [$startDate, $endDate])
-              ->orWhere(function ($subQ) use ($startDate, $endDate) {
-                  $subQ->where('start_date', '<=', $startDate)
-                       ->where('end_date', '>=', $endDate);
-              });
+                ->orWhereBetween('end_date', [$startDate, $endDate])
+                ->orWhere(function ($subQ) use ($startDate, $endDate) {
+                    $subQ->where('start_date', '<=', $startDate)
+                        ->where('end_date', '>=', $endDate);
+                });
         });
     }
 
     public function getPeriodLabelAttribute(): string
     {
-        return $this->start_date->format('M d, Y') . ' - ' . $this->end_date->format('M d, Y');
+        return $this->start_date->format('M d, Y').' - '.$this->end_date->format('M d, Y');
     }
 
     public function getStatusLabelAttribute(): string
@@ -163,12 +165,19 @@ class PayrollRun extends Model
     public function getAverageHoursPerEmployeeAttribute(): float
     {
         $employeeCount = $this->employee_count;
+
         return $employeeCount > 0 ? round($this->total_hours / $employeeCount, 2) : 0;
     }
 
     public function getAveragePayPerEmployeeAttribute(): float
     {
         $employeeCount = $this->employee_count;
+
         return $employeeCount > 0 ? round($this->total_amount / $employeeCount, 2) : 0;
+    }
+
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
     }
 }

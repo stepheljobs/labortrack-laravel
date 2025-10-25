@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\Multitenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Labor extends Model
 {
-    use HasFactory;
+    use HasFactory, Multitenant;
 
     protected $fillable = [
         'name',
@@ -17,6 +18,7 @@ class Labor extends Model
         'designation',
         'daily_rate',
         'project_id',
+        'company_id',
     ];
 
     protected $casts = [
@@ -41,5 +43,10 @@ class Labor extends Model
     public function attendanceLogs(): HasMany
     {
         return $this->hasMany(AttendanceLog::class);
+    }
+
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
     }
 }
