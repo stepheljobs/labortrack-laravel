@@ -149,7 +149,7 @@ class PayrollCalculationService
         if (!empty($unpaired)) {
             \Log::warning('Unpaired attendance records found', [
                 'unpaired_count' => count($unpaired),
-                'records' => $unpaired->map(fn($log) => [
+                'records' => collect($unpaired)->map(fn($log) => [
                     'id' => $log->id,
                     'labor_id' => $log->labor_id,
                     'type' => $log->type,
